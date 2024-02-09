@@ -15,7 +15,7 @@ export type Modifier = typeof SUPPORTED_MODIFIERS[number];
 
 type ShortcutMap<ContextName extends string> = Map<string /* key */, Shortcut<ContextName>[]>;
 
-export type ShortcutContextName<ContextName extends string> = 'any' | ContextName | `!${ContextName}`;
+export type ShortcutContextName<ContextName extends string> = ContextName | `!${ContextName}`;
 
 export type ShortcutContext<
   ContextName extends string
@@ -50,8 +50,12 @@ export type Shortcut<ContextName extends string> = {
   handler: (this: null, e: KeyboardEvent) => void
 
   /**
-   * Contexts which the shortcut is defined for. If not set, the shortcut will assume the default
-   * value of `'any'` which means it will fire for any context.
+   * Defines in which contexts the shortcut is allowed to fire:
+   * - If not set, `false` or an empty array the shortcut will apply in any context
+   * - If one or more contexts are defined, the shortcut will only apply if at least one of those
+   * contexts are active
+   * - If a context is added with a '!' prefix, the shortcut will never apply if this context is
+   * active.
    */
   context?: ShortcutContext<ContextName> | false
 }
@@ -160,8 +164,7 @@ export class KeyboardShortcuts<ContextName extends string> {
   /**
    * Adds a new context or multiple to be active to the current active contexts.
    *
-   * @throws If any of the context names is invalid. Context name must not start with '!' or have a
-   * value of 'any'.
+   * @throws If any of the context names is invalid. Context name must not start with '!'.
    */
   public activateContext(contexts: ContextName | ContextName[]): void {
     if (!Array.isArray(contexts)) {
@@ -182,8 +185,7 @@ export class KeyboardShortcuts<ContextName extends string> {
   /**
    * Sets new active contexts, overriding the previous value.
    *
-   * @throws If any of the context names is invalid. Context name must not start with '!' or have a
-   * value of 'any'.
+   * @throws If any of the context names is invalid. Context name must not start with '!'.
    */
   public setActiveContexts(contexts: ContextName[]) {
     validateContexts(contexts, 'Op1i3F4Reh84');
@@ -272,6 +274,10 @@ export class KeyboardShortcuts<ContextName extends string> {
           throw new Error(`Invalid modifier ${mod}`);
         }
 
+        // Note that for code bindings that start with code: - the first letter is c and so is not
+        // a symbol. That is desired - the point of disallowing binding to key with Shift is that
+        // Shift changes the key so it does not make sense at all, but a direct code bind with Shift
+        // does.
         if (mods.includes('shift') && isSymbol(shortcut.key.charCodeAt(0))) {
           throw new Error(`Shift is not allowed as a modifier with symbol keys (key: ${shortcut.key})`);
         }
@@ -349,10 +355,6 @@ function getModifiers(e: KeyboardEvent): Array<Exclude<Modifier, 'system'>> {
 
 function validateContexts(contexts: string[], trace: string): void {
   for (const context of contexts) {
-    if (context === 'any') {
-      throw new Error(`Context value must not be 'any' [${trace}]`);
-    }
-
     if (context.startsWith('!')) {
       throw new Error(`Context value must not start with '!' [${trace}]`);
     }
@@ -427,15 +429,12 @@ function checkContext(
     }
   }
 
-  // It's not bound to any context if it does not have any affirmative context requirement - i.e.
-  // it could be 'any' or empty or just exclude / context negation.
-  let contextBound = false;
+  let isGlobal = true;
 
   // Check for required contexts
   for (const context of inputContext) {
-    // Note that checking for 'any' is not required since it's a forbidden value for context name.
     if (!context.startsWith('!')) {
-      contextBound = true;
+      isGlobal = false;
 
       if (activeContexts.includes(context)) {
         return true;
@@ -443,8 +442,7 @@ function checkContext(
     }
   }
 
-  // At this point it could only match if it is not bound to any context.
-  return !contextBound;
+  return isGlobal;
 }
 
 /**
