@@ -171,7 +171,7 @@ export class KeyboardShortcuts<ContextName extends string> {
     validateContexts(contexts, 'mevfnGDa1MXm');
 
     for (const context of contexts) {
-      if (this.activeContexts_.includes(context)) {
+      if (!this.activeContexts_.includes(context)) {
         this.activeContexts_.push(context);
       }
     }
