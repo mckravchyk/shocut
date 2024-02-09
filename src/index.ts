@@ -53,7 +53,7 @@ export type Shortcut<ContextName extends string> = {
    * Contexts which the shortcut is defined for. If not set, the shortcut will assume the default
    * value of `'any'` which means it will fire for any context.
    */
-  context?: ShortcutContext<ContextName>
+  context?: ShortcutContext<ContextName> | false
 }
 
 export enum Platform {
@@ -293,7 +293,9 @@ export class KeyboardShortcuts<ContextName extends string> {
         key: shortcut.key,
         handler: shortcut.handler,
         mod: dedupe(getArrayFromProp(shortcut.mod)),
-        context: dedupe(getArrayFromProp<ShortcutContextName<ContextName>>(shortcut.context)),
+        context: shortcut.context !== false
+          ? dedupe(getArrayFromProp<ShortcutContextName<ContextName>>(shortcut.context))
+          : false,
       });
     }
 
@@ -408,9 +410,9 @@ function checkModifiersMatch(
 
 function checkContext(
   activeContexts: string[],
-  inputContext?: string | string[],
+  inputContext?: string | string[] | false,
 ): boolean {
-  if (typeof inputContext === 'undefined') {
+  if (typeof inputContext === 'undefined' || inputContext === false) {
     return true;
   }
 
