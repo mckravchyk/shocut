@@ -293,7 +293,7 @@ export class KeyboardShortcuts<ContextName extends string> {
         key: shortcut.key,
         handler: shortcut.handler,
         mod: dedupe(getArrayFromProp(shortcut.mod)),
-        context: dedupe(getArrayFromProp<ShortcutContextName<ContextName>>(shortcut.context, 'any')),
+        context: dedupe(getArrayFromProp<ShortcutContextName<ContextName>>(shortcut.context)),
       });
     }
 
@@ -441,7 +441,7 @@ function checkContext(
     }
   }
 
-  // At this point it could only match if it is not bound to any any context.
+  // At this point it could only match if it is not bound to any context.
   return !contextBound;
 }
 
