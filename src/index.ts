@@ -168,11 +168,7 @@ export class KeyboardShortcuts<ContextName extends string> {
    *
    * @throws If any of the context names is invalid. Context name must not start with '!'.
    */
-  public activateContext(contexts: ContextName | ContextName[]): void {
-    if (!Array.isArray(contexts)) {
-      contexts = [contexts];
-    }
-
+  public activateContext(...contexts: ContextName[]): void {
     validateContexts(contexts, 'mevfnGDa1MXm');
 
     for (const context of contexts) {
@@ -189,17 +185,13 @@ export class KeyboardShortcuts<ContextName extends string> {
    *
    * @throws If any of the context names is invalid. Context name must not start with '!'.
    */
-  public setActiveContexts(contexts: ContextName[]) {
+  public setActiveContexts(...contexts: ContextName[]) {
     validateContexts(contexts, 'Op1i3F4Reh84');
     this.activeContexts_ = [...contexts];
     this.processChanges_();
   }
 
-  public deactivateContext(contexts: ContextName | ContextName[]): void {
-    if (!Array.isArray(contexts)) {
-      contexts = [contexts];
-    }
-
+  public deactivateContext(...contexts: ContextName[]): void {
     for (const context of contexts) {
       const index = this.activeContexts_.indexOf(context);
 
