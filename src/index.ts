@@ -119,6 +119,8 @@ export class KeyboardShortcuts<ContextName extends string> {
     this.platform_ = args.platform;
     this.activeContexts_ = args.activeContexts || [];
 
+    validateContexts(this.activeContexts_, 'Nu46QORqkIX5');
+
     if (!args.noAutoBind) {
       this.autobind_ = true;
       window.addEventListener('keydown', this.handleKeydown);
@@ -242,6 +244,7 @@ export class KeyboardShortcuts<ContextName extends string> {
     return false;
   };
 
+  // Note that it must not be the ECMAScript private field # as it's used in tests
   private processShortcut_(e: KeyboardEvent, keyShortcuts: Shortcut<ContextName>[]): boolean {
     let shortcutFired = false;
     const modifiers = getModifiers(e);
