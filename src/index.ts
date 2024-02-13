@@ -143,16 +143,32 @@ export class KeyboardShortcuts<ContextName extends string> {
   }
 
   /**
-   * Removes shortcuts with a `filter` function (similar to `Array.prototype.filter`) for specified
-   * `keyOrKeys` or if not set, all keys.
+   * Removes shortcuts with a `removeShortuct` function that accepts the shortcut as an argument and
+   * removes it if `true` is returned (works opposite to `Array.prototype.filter`).
+   *
+   * NOTE: Single letter keys are always stored in upper case regardless of the original input data
+   * and upper case letters must be used for comparison in the filter function. In the majority of
+   * cases it would just suffice to use the keyOrKeys argument which does not care about the case.
+   *
+   * @param keyOrKeys If set, the function will only be applied on specific keys rather than
+   * processing everything. Unlike filter, this input is case insensitive.
   */
   public remove(
-    filter: (shortcut: Shortcut<ContextName>) => boolean,
+    removeShortcut: (shortcut: Shortcut<ContextName>) => boolean,
     keyOrKeys?: string | string[],
   ): void {
+    let keys: string[] | null = null;
+
+    if (Array.isArray(keyOrKeys)) {
+      keys = keyOrKeys.map((k) => sanitizeKeyValue(k));
+    }
+    else if (typeof keyOrKeys === 'string') {
+      keys = [sanitizeKeyValue(keyOrKeys)];
+    }
+
     for (const [key, shortcuts] of Array.from(this.shortcuts_.entries())) {
-      if (typeof keyOrKeys === 'undefined' || keyOrKeys === key || keyOrKeys.includes(key)) {
-        this.shortcuts_.set(key, shortcuts.filter(filter));
+      if (keys === null || keys.includes(key)) {
+        this.shortcuts_.set(key, shortcuts.filter((v) => !removeShortcut(v)));
       }
     }
 
@@ -279,7 +295,10 @@ export class KeyboardShortcuts<ContextName extends string> {
       }
     }
 
-    for (const shortcut of shortcuts) {
+    for (const s of shortcuts) {
+      const key = sanitizeKeyValue(s.key);
+      const shortcut = { ...s, key };
+
       let keyShortcuts: Shortcut<ContextName>[];
 
       if (this.shortcuts_.has(shortcut.key)) {
@@ -346,6 +365,10 @@ function getModifiers(e: KeyboardEvent): Array<Exclude<Modifier, 'system'>> {
   }
 
   return modifiers;
+}
+
+function sanitizeKeyValue(key: string): string {
+  return key.length === 1 ? key.toUpperCase() : key;
 }
 
 function validateContexts(contexts: string[], trace: string): void {
