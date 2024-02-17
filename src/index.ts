@@ -15,13 +15,12 @@ export type Modifier = typeof SUPPORTED_MODIFIERS[number];
 
 type ShortcutMap<ContextName extends string> = Map<string /* key */, Shortcut<ContextName>[]>;
 
-export type ShortcutContextName<ContextName extends string> = ContextName | `!${ContextName}`;
+export type ShortcutContext<ContextName extends string> = ContextName | `!${ContextName}`;
 
-export type ShortcutContext<
-  ContextName extends string
-> = ShortcutContextName<ContextName> | ShortcutContextName<ContextName>[]
-
-export type Shortcut<ContextName extends string> = {
+/**
+ * The arguments for registering a shortcut.
+ */
+export interface ShortcutArgs<ContextName extends string> {
   /**
    * The key to trigger the shortcut. Only one key is allowed sans modifiers.
    *
@@ -57,7 +56,20 @@ export type Shortcut<ContextName extends string> = {
    * - If a context is added with a '!' prefix, the shortcut will never apply if this context is
    * active.
    */
-  context?: ShortcutContext<ContextName> | false
+  context?: ShortcutContext<ContextName> | ShortcutContext<ContextName>[] | false
+}
+
+/**
+ * The shortcut properties as stored internally.
+ */
+export interface Shortcut<ContextName extends string> extends ShortcutArgs<ContextName> {
+  key: string
+
+  mod: Modifier[]
+
+  handler: (this: null, e: KeyboardEvent) => void
+
+  context: ShortcutContext<ContextName>[]
 }
 
 export enum Platform {
@@ -68,7 +80,7 @@ export enum Platform {
 }
 
 export interface Args<ContextName extends string> {
-  shortcuts: Shortcut<ContextName>[]
+  shortcuts: ShortcutArgs<ContextName>[]
   platform: Platform
   activeContexts?: ContextName[]
 
@@ -138,7 +150,7 @@ export class KeyboardShortcuts<ContextName extends string> {
   /**
    * Adds new shortcuts.
    */
-  public add(shortcuts: Shortcut<ContextName>[]): void {
+  public add(shortcuts: ShortcutArgs<ContextName>[]): void {
     this.registerShortcuts(shortcuts);
   }
 
@@ -257,7 +269,7 @@ export class KeyboardShortcuts<ContextName extends string> {
    *
    * @param mod Array of modifiers. Pass empty array if there are no modifiers.
    */
-  public static modifiersMatch(shortcut: Shortcut<string>, mod: Modifier[]): boolean {
+  public static modifiersMatch(shortcut: ShortcutArgs<string>, mod: Modifier[]): boolean {
     if (!Array.isArray(mod)) {
       mod = [mod];
     }
@@ -301,7 +313,7 @@ export class KeyboardShortcuts<ContextName extends string> {
     return shortcutFired;
   }
 
-  private registerShortcuts(shortcuts: Shortcut<ContextName>[]): void {
+  private registerShortcuts(shortcuts: ShortcutArgs<ContextName>[]): void {
     for (const shortcut of shortcuts) {
       const mods = getArrayFromProp(shortcut.mod);
 
@@ -338,9 +350,9 @@ export class KeyboardShortcuts<ContextName extends string> {
         key: shortcut.key,
         handler: shortcut.handler,
         mod: dedupe(getArrayFromProp(shortcut.mod)),
-        context: shortcut.context !== false
-          ? dedupe(getArrayFromProp<ShortcutContextName<ContextName>>(shortcut.context))
-          : false,
+        context: typeof shortcut.context !== 'undefined' && shortcut.context !== false
+          ? dedupe(getArrayFromProp<ShortcutContext<ContextName>>(shortcut.context))
+          : [],
       });
     }
 
@@ -406,15 +418,11 @@ function validateContexts(contexts: string[], trace: string): void {
 
 function checkModifiersMatch(
   input: Array<Exclude<Modifier, 'system'>>,
-  target: Modifier | Modifier[] | false,
+  target: Modifier[],
   platform: Platform,
 ) : boolean {
-  if (target === false) {
+  if (target.length === 0) {
     return input.length === 0;
-  }
-
-  if (!Array.isArray(target)) {
-    target = [target];
   }
 
   target = [...target];
@@ -445,9 +453,9 @@ function checkModifiersMatch(
 
 function checkContext(
   activeContexts: string[],
-  inputContext?: string | string[] | false,
+  inputContext: string[],
 ): boolean {
-  if (typeof inputContext === 'undefined' || inputContext === false) {
+  if (inputContext.length === 0) {
     return true;
   }
 
@@ -497,16 +505,9 @@ function hasNoModShortcuts(
         continue;
       }
 
-      if (
-        typeof shortcut.mod === 'undefined'
-        // Shift is not treated as a modifier here since it plays a frequent role when typing
-        // text.
-        || shortcut.mod === 'shift'
-        || (Array.isArray(shortcut.mod) && (
-          shortcut.mod.length === 0
-          || shortcut.mod.filter((mod) => mod !== 'shift').length === 0
-        ))
-      ) {
+      // Shift is not treated as a modifier here since it plays a frequent role when typing
+      // text.
+      if (shortcut.mod.length === 0 || shortcut.mod.filter((mod) => mod !== 'shift').length === 0) {
         return true;
       }
     }
