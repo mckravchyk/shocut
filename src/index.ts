@@ -1,5 +1,5 @@
 import { getShortcutKey } from 'keyboard-shortcuts-i18n';
-import { dedupe } from './lib/array';
+import { dedupe, haveSameValues } from './lib/array';
 
 const SUPPORTED_MODIFIERS = ['system', 'ctrl', 'meta', 'alt', 'shift'] as const;
 
@@ -252,6 +252,31 @@ export class KeyboardShortcuts<ContextName extends string> {
     return false;
   };
 
+  /**
+   * Whether the modifiers match those of the shortcut.
+   *
+   * @param mod Array of modifiers. Pass empty array if there are no modifiers.
+   */
+  public static modifiersMatch(shortcut: Shortcut<string>, mod: Modifier[]): boolean {
+    if (!Array.isArray(mod)) {
+      mod = [mod];
+    }
+
+    let shortcutMod: Modifier[] = [];
+
+    if (Array.isArray(shortcut.mod)) {
+      shortcutMod = shortcut.mod;
+    }
+    else if (typeof shortcut.mod === 'string') {
+      shortcutMod = [shortcut.mod];
+    }
+    else {
+      shortcutMod = [];
+    }
+
+    return mod.length === shortcutMod.length && haveSameValues(mod, shortcutMod);
+  }
+
   // Note that it must not be the ECMAScript private field # as it's used in tests
   private processShortcut_(e: KeyboardEvent, keyShortcuts: Shortcut<ContextName>[]): boolean {
     let shortcutFired = false;
@@ -411,18 +436,8 @@ function checkModifiersMatch(
     return false;
   }
 
-  // No match if the input does not have a modifier required by the shortcut
-  for (const mod of target) {
-    if (!input.includes(mod as Exclude<Modifier, 'system'>)) {
-      return false;
-    }
-  }
-
-  // No match if the input has a modifier that is not required by the shortcut
-  for (const mod of input) {
-    if (!target.includes(mod)) {
-      return false;
-    }
+  if (!haveSameValues(target, input)) {
+    return false;
   }
 
   return true;
