@@ -110,7 +110,7 @@ const NON_TYPING_KEYS = [
   'Insert',
 ];
 
-export class KeyboardShortcuts<ContextName extends string> {
+export class Shocut<ContextName extends string> {
   private shortcuts_: ShortcutMap<ContextName> = new Map();
 
   /**

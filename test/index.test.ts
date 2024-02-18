@@ -1,6 +1,6 @@
 /* eslint-disable object-curly-newline, no-new */
 
-import { Platform, KeyboardShortcuts, type Modifier } from 'src';
+import { Platform, Shocut, type Modifier } from 'src';
 
 function dispatchKeydown(key: string, code: string, modifiers: Array<Exclude<Modifier, 'system'>> = []): void {
   const eventProperties: Partial<KeyboardEvent> = {
@@ -22,7 +22,7 @@ describe('Shortcut handling', () => {
       let a = 0;
       let b = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           {
             key: 'A',
@@ -49,7 +49,7 @@ describe('Shortcut handling', () => {
       let meta = 0;
       let alt = 0;
       let shift = 0;
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { ctrl += 1; } },
           { key: 'A', mod: ['alt'], handler() { alt += 1; } },
@@ -75,7 +75,7 @@ describe('Shortcut handling', () => {
     test('A shortcut fires for multiple modifiers', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl', 'shift'], handler() { fireCount += 1; } },
         ],
@@ -91,7 +91,7 @@ describe('Shortcut handling', () => {
     test('2 identical key handlers fire in the order they were added', () => {
       const result: number[] = [];
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['shift'], handler() { result.push(0); } },
           { key: 'A', mod: ['shift'], handler() { result.push(1); } },
@@ -108,7 +108,7 @@ describe('Shortcut handling', () => {
     test("A shortcut bound with 'code:' prefix' binds to the code value of the event", () => {
       let fired = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           {
             key: 'code:KeyA',
@@ -127,7 +127,7 @@ describe('Shortcut handling', () => {
     test('A shortcut fires for the QWERTY equivalent (code value) of a non-Latin key', () => {
       let fired = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           {
             key: 'W',
@@ -149,7 +149,7 @@ describe('Shortcut handling', () => {
     test("A shortcut does not fire if it's key was not used", () => {
       let fired = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           {
             key: 'N',
@@ -168,7 +168,7 @@ describe('Shortcut handling', () => {
     test('A shortcut does not fire if its modifier is not present', () => {
       let ctrl = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { ctrl += 1; } },
         ],
@@ -185,7 +185,7 @@ describe('Shortcut handling', () => {
     test('A shortcut does not fire for a superfluous modifier', () => {
       let ctrl = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { ctrl += 1; } },
         ],
@@ -202,7 +202,7 @@ describe('Shortcut handling', () => {
     test('A shortcut bound to no modifier does not fire if a modifier is present', () => {
       let fired = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           {
             key: 'A',
@@ -223,7 +223,7 @@ describe('Shortcut handling', () => {
     test('A shortcut fires in any context', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; } },
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: false },
@@ -243,7 +243,7 @@ describe('Shortcut handling', () => {
     test('a shortcut fires only in specific contexts', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: 'test' },
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: ['test2'] },
@@ -267,7 +267,7 @@ describe('Shortcut handling', () => {
     test('a shortcut never fires in specific contexts', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: '!test' },
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: ['test', '!test2'] },
@@ -294,14 +294,14 @@ describe('Shortcut handling', () => {
       let ctrl = 0;
       let meta = 0;
 
-      const sh1 = new KeyboardShortcuts({
+      const sh1 = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['system'], handler() { ctrl += 1; } },
         ],
         platform: Platform.linux,
       });
 
-      const sh2 = new KeyboardShortcuts({
+      const sh2 = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['system'], handler() { meta += 1; } },
         ],
@@ -321,7 +321,7 @@ describe('Shortcut handling', () => {
     test('ctrl + system = ctrl on systems other than Mac OS', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl', 'system'], handler() { fireCount += 1; } },
         ],
@@ -338,7 +338,7 @@ describe('Shortcut handling', () => {
     test('meta + system = meta on Mac OS', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['meta', 'system'], handler() { fireCount += 1; } },
         ],
@@ -355,7 +355,7 @@ describe('Shortcut handling', () => {
     test('meta + system = meta + ctrl on systems other than Mac OS', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['meta', 'system'], handler() { fireCount += 1; } },
         ],
@@ -372,7 +372,7 @@ describe('Shortcut handling', () => {
     test('ctrl + system = ctrl + meta on Mac OS', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl', 'system'], handler() { fireCount += 1; } },
         ],
@@ -391,7 +391,7 @@ describe('Shortcut handling', () => {
     test('Shortcuts are not processed while typing if there are no shortcuts without modifiers', () => {
       let fired = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', handler() { fired += 1; }, mod: ['ctrl'] },
         ],
@@ -402,7 +402,7 @@ describe('Shortcut handling', () => {
       const originalProcessShortcut = sh.processShortcut_;
 
       const processShortcut = jest.fn(
-        (...args: Parameters<KeyboardShortcuts<string>['processShortcut_']>) => originalProcessShortcut.call(sh, ...args),
+        (...args: Parameters<Shocut<string>['processShortcut_']>) => originalProcessShortcut.call(sh, ...args),
       );
 
       // @ts-expect-error Overriding private method with the mock.
@@ -425,7 +425,7 @@ describe('Shortcut handling', () => {
     test('A shortcut fires for the shift modifier (as the only shortcut bound)', () => {
       let shift = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['shift'], handler() { shift += 1; } },
         ],
@@ -441,7 +441,7 @@ describe('Shortcut handling', () => {
     test('A shortcut fires for non-typing keys', () => {
       let fireCount = 0;
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
           { key: 'Escape', handler() { fireCount += 1; } },
           { key: 'F1', handler() { fireCount += 1; } },
@@ -469,7 +469,7 @@ describe('Management', () => {
   test('The handler is bound manually', () => {
     let fired = 0;
 
-    const sh = new KeyboardShortcuts({
+    const sh = new Shocut({
       shortcuts: [
         {
           key: 'A',
@@ -493,7 +493,7 @@ describe('Management', () => {
   test('destroy() unbinds the handler if it was automatically added', () => {
     let fired = 0;
 
-    const sh = new KeyboardShortcuts({
+    const sh = new Shocut({
       shortcuts: [
         {
           key: 'A',
@@ -512,7 +512,7 @@ describe('Management', () => {
   test('Initializes with a context value', () => {
     let fireCount = 0;
 
-    const sh = new KeyboardShortcuts<'a' | 'b' | 'c'>({
+    const sh = new Shocut<'a' | 'b' | 'c'>({
       shortcuts: [
         { key: 'A', handler() { fireCount += 1; }, context: 'a' },
       ],
@@ -530,7 +530,7 @@ describe('Management', () => {
     let a = 0;
     let b = 0;
 
-    const sh = new KeyboardShortcuts<'a' | 'b' | 'c'>({
+    const sh = new Shocut<'a' | 'b' | 'c'>({
       shortcuts: [
         { key: 'A', handler() { a += 1; }, context: 'a' },
         { key: 'A', handler() { b += 1; }, context: 'b' },
@@ -554,7 +554,7 @@ describe('Management', () => {
     let a = 0;
     let b = 0;
 
-    const sh = new KeyboardShortcuts<'a' | 'b' | 'c'>({
+    const sh = new Shocut<'a' | 'b' | 'c'>({
       shortcuts: [
         { key: 'A', handler() { a += 1; }, context: 'a' },
         { key: 'A', handler() { b += 1; }, context: 'b' },
@@ -578,7 +578,7 @@ describe('Management', () => {
     let a = 0;
     let b = 0;
 
-    const sh = new KeyboardShortcuts<'a' | 'b' | 'c'>({
+    const sh = new Shocut<'a' | 'b' | 'c'>({
       shortcuts: [
         { key: 'A', handler() { a += 1; }, context: 'a' },
         { key: 'A', handler() { b += 1; }, context: 'b' },
@@ -601,7 +601,7 @@ describe('Management', () => {
   test('New shortcuts are added', () => {
     let fired = 0;
 
-    const sh = new KeyboardShortcuts({
+    const sh = new Shocut({
       shortcuts: [],
       platform: Platform.linux,
     });
@@ -626,7 +626,7 @@ describe('Management', () => {
     let b = 0;
     let c = 0;
 
-    const sh = new KeyboardShortcuts({
+    const sh = new Shocut({
       shortcuts: [
         {
           key: 'A',
@@ -665,7 +665,7 @@ describe('Management', () => {
     // Those are multiple test cases in one to avoid polution of the suite. Shortcut removal already
     // occupies a disproporionate amount of test cases.
 
-    let sh = new KeyboardShortcuts({
+    let sh = new Shocut({
       shortcuts: [
         {
           key: 'A',
@@ -701,7 +701,7 @@ describe('Management', () => {
     b = 0;
     c = 0;
 
-    sh = new KeyboardShortcuts({
+    sh = new Shocut({
       shortcuts: [
         {
           key: 'A',
@@ -737,7 +737,7 @@ describe('Management', () => {
     b = 0;
     c = 0;
 
-    sh = new KeyboardShortcuts({
+    sh = new Shocut({
       shortcuts: [
         {
           key: 'A',
@@ -773,7 +773,7 @@ describe('Management', () => {
     let escape = 0;
     let codeW = 0;
 
-    sh = new KeyboardShortcuts({
+    sh = new Shocut({
       shortcuts: [
         {
           key: 'Escape',
@@ -819,7 +819,7 @@ describe('Management', () => {
     let b = 0;
     let c = 0;
 
-    let sh = new KeyboardShortcuts({
+    let sh = new Shocut({
       shortcuts: [
         {
           key: 'A',
@@ -855,7 +855,7 @@ describe('Management', () => {
     let escape = 0;
     let codeW = 0;
 
-    sh = new KeyboardShortcuts({
+    sh = new Shocut({
       shortcuts: [
         {
           key: 'Escape',
@@ -901,7 +901,7 @@ describe('Management', () => {
     let alt = 0;
     let noMod = 0;
 
-    const sh = new KeyboardShortcuts({
+    const sh = new Shocut({
       shortcuts: [
         {
           key: 'A',
@@ -922,24 +922,24 @@ describe('Management', () => {
     });
 
     // Expecting to not have an effect
-    sh.remove((s) => KeyboardShortcuts.modifiersMatch(s, ['alt', 'ctrl']));
+    sh.remove((s) => Shocut.modifiersMatch(s, ['alt', 'ctrl']));
 
     dispatchKeydown('a', 'KeyA');
     dispatchKeydown('a', 'KeyA', ['ctrl']);
     dispatchKeydown('a', 'KeyA', ['alt']);
 
-    sh.remove((s) => KeyboardShortcuts.modifiersMatch(s, ['ctrl']));
+    sh.remove((s) => Shocut.modifiersMatch(s, ['ctrl']));
 
     dispatchKeydown('a', 'KeyA');
     dispatchKeydown('a', 'KeyA', ['ctrl']);
     dispatchKeydown('a', 'KeyA', ['alt']);
 
-    sh.remove((s) => KeyboardShortcuts.modifiersMatch(s, ['alt']));
+    sh.remove((s) => Shocut.modifiersMatch(s, ['alt']));
 
     dispatchKeydown('a', 'KeyA');
     dispatchKeydown('a', 'KeyA', ['ctrl']);
     dispatchKeydown('a', 'KeyA', ['alt']);
-    sh.remove((s) => KeyboardShortcuts.modifiersMatch(s, []));
+    sh.remove((s) => Shocut.modifiersMatch(s, []));
 
     dispatchKeydown('a', 'KeyA');
     dispatchKeydown('a', 'KeyA', ['ctrl']);
@@ -960,7 +960,7 @@ describe('Management', () => {
       a += 1;
     };
 
-    const sh = new KeyboardShortcuts({
+    const sh = new Shocut({
       shortcuts: [
         { handler, key: 'A' },
         { handler() { b += 1; }, key: 'A' },
@@ -987,7 +987,7 @@ describe('Management', () => {
     let d = 0;
     let e = 0;
 
-    const sh = new KeyboardShortcuts({
+    const sh = new Shocut({
       shortcuts: [
         { key: 'A', mod: ['ctrl'], handler() { a += 1; }, context: 'test' },
         { key: 'A', mod: ['ctrl'], handler() { b += 1; }, context: ['test2'] },
@@ -1027,7 +1027,7 @@ describe('Management', () => {
       let errorCount = 0;
 
       try {
-        new KeyboardShortcuts({
+        new Shocut({
           shortcuts: [
             { key: '|', mod: ['shift'], handler: jest.fn },
           ],
@@ -1039,7 +1039,7 @@ describe('Management', () => {
       }
 
       try {
-        new KeyboardShortcuts({
+        new Shocut({
           shortcuts: [
             { key: '#', mod: ['shift', 'ctrl'], handler: jest.fn },
           ],
@@ -1050,7 +1050,7 @@ describe('Management', () => {
         errorCount += 1;
       }
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
         ],
         platform: Platform.linux,
@@ -1084,7 +1084,7 @@ describe('Management', () => {
       let errorCount = 0;
 
       try {
-        new KeyboardShortcuts({
+        new Shocut({
           shortcuts: [
             // @ts-expect-error For testing purposes.
             { key: 'A', mod: ['magic'], handler: jest.fn },
@@ -1096,7 +1096,7 @@ describe('Management', () => {
         errorCount += 1;
       }
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [
         ],
         platform: Platform.linux,
@@ -1121,7 +1121,7 @@ describe('Management', () => {
       let errorCount = 0;
 
       try {
-        new KeyboardShortcuts({
+        new Shocut({
           shortcuts: [],
           activeContexts: ['!test'],
           platform: Platform.linux,
@@ -1131,7 +1131,7 @@ describe('Management', () => {
         errorCount += 1;
       }
 
-      const sh = new KeyboardShortcuts({
+      const sh = new Shocut({
         shortcuts: [],
         platform: Platform.linux,
       });
