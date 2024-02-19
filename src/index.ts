@@ -337,7 +337,6 @@ export class Shocut<ContextName extends string> {
 
         e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
 
         shortcutFired = true;
         // Note that multiple handlers for the same key combinations are allowed - do not break.

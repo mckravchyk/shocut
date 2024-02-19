@@ -51,6 +51,37 @@ describe('Shortcut handling', () => {
       sh.destroy();
     });
 
+    test('A shortcut handler does not block other keydown handlers', () => {
+      let a = 0;
+      let b = 0;
+
+      const sh1 = new Shocut({
+        shortcuts: [
+          {
+            key: 'A',
+            handler() { a += 1; },
+          },
+        ],
+      });
+
+      const sh2 = new Shocut({
+        shortcuts: [
+          {
+            key: 'A',
+            handler() { b += 1; },
+            mod: [],
+          },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA');
+      expect(a).toBe(1);
+      expect(b).toBe(1);
+
+      sh1.destroy();
+      sh2.destroy();
+    });
+
     test('A shortcut fires for each modifier', () => {
       let ctrl = 0;
       let meta = 0;
