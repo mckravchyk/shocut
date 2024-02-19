@@ -23,7 +23,7 @@
   "scripts": {
     "lint": "eslint src test",
     "check-types": "tsc --noemit",
-    "test": "npx jest",
+    "test": "npx jest --verbose",
     "check": "npm run lint; npm run check-types && npm run test",
     "build": "npx rollup -c",
     "prepublish": "npm run check && npm run build"
