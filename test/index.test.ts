@@ -1,6 +1,14 @@
 /* eslint-disable object-curly-newline, no-new */
 
-import { Platform, Shocut, type Modifier } from 'src';
+import { Shocut, type Modifier } from 'src';
+
+type NavigatorUaData = Navigator & { userAgentData: { platform: string } };
+
+// This ensures that the default platform to determine the system key is Linux. This is the primary
+// method so overriding navigator.platform is not required.
+(window.navigator as NavigatorUaData).userAgentData = {
+  platform: 'Linux',
+};
 
 function dispatchKeydown(key: string, code: string, modifiers: Array<Exclude<Modifier, 'system'>> = []): void {
   const eventProperties: Partial<KeyboardEvent> = {
@@ -34,7 +42,6 @@ describe('Shortcut handling', () => {
             mod: [],
           },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA');
@@ -56,7 +63,6 @@ describe('Shortcut handling', () => {
           { key: 'A', mod: ['meta'], handler() { meta += 1; } },
           { key: 'A', mod: ['shift'], handler() { shift += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl']);
@@ -79,7 +85,6 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['ctrl', 'shift'], handler() { fireCount += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['shift', 'ctrl']);
@@ -96,7 +101,6 @@ describe('Shortcut handling', () => {
           { key: 'A', mod: ['shift'], handler() { result.push(0); } },
           { key: 'A', mod: ['shift'], handler() { result.push(1); } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['shift']);
@@ -115,7 +119,6 @@ describe('Shortcut handling', () => {
             handler() { fired += 1; },
           },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('m', 'KeyA');
@@ -134,7 +137,6 @@ describe('Shortcut handling', () => {
             handler() { fired += 1; },
           },
         ],
-        platform: Platform.linux,
       });
 
       // Greek layout example
@@ -156,7 +158,6 @@ describe('Shortcut handling', () => {
             handler() { fired += 1; },
           },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA');
@@ -172,7 +173,6 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { ctrl += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['alt']);
@@ -189,7 +189,6 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { ctrl += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl', 'alt']);
@@ -209,7 +208,6 @@ describe('Shortcut handling', () => {
             handler() { fired += 1; },
           },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl']);
@@ -229,7 +227,6 @@ describe('Shortcut handling', () => {
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: false },
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: [] },
         ],
-        platform: Platform.linux,
         activeContexts: ['test'],
       });
 
@@ -248,7 +245,6 @@ describe('Shortcut handling', () => {
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: 'test' },
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: ['test2'] },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl']); // 0
@@ -272,7 +268,6 @@ describe('Shortcut handling', () => {
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: '!test' },
           { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: ['test', '!test2'] },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl']); // #1
@@ -298,14 +293,13 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['system'], handler() { ctrl += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       const sh2 = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['system'], handler() { meta += 1; } },
         ],
-        platform: Platform.macos,
+        systemMod: 'meta',
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl']);
@@ -318,6 +312,55 @@ describe('Shortcut handling', () => {
       sh2.destroy();
     });
 
+    test('The system modifier is retrieved from navigator.userAgentData.platform if not set', () => {
+      const originalUaData = (window.navigator as NavigatorUaData).userAgentData;
+
+      (window.navigator as NavigatorUaData).userAgentData = {
+        platform: 'macOS',
+      };
+
+      let meta = 0;
+
+      const sh = new Shocut({
+        shortcuts: [
+          { key: 'A', mod: ['system'], handler() { meta += 1; } },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA', ['meta']);
+
+      expect(meta).toBe(1);
+
+      sh.destroy();
+      (window.navigator as NavigatorUaData).userAgentData = originalUaData;
+    });
+
+    test('The system modifier is retrieved from navigator.platform if not set', () => {
+      const originalUaData = (window.navigator as NavigatorUaData).userAgentData;
+
+      // The default platform must be suppressed in order to test the navigator.platform fallback.
+      // @ts-expect-error platform property missing
+      (window.navigator as NavigatorUaData).userAgentData = { };
+
+      const navigatorSpy = jest.spyOn(window.navigator, 'platform', 'get');
+      navigatorSpy.mockImplementation(() => 'MacIntel');
+
+      let meta = 0;
+
+      const sh = new Shocut({
+        shortcuts: [
+          { key: 'A', mod: ['system'], handler() { meta += 1; } },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA', ['meta']);
+      expect(meta).toBe(1);
+      sh.destroy();
+
+      navigatorSpy.mockRestore();
+      (window.navigator as NavigatorUaData).userAgentData = originalUaData;
+    });
+
     test('ctrl + system = ctrl on systems other than Mac OS', () => {
       let fireCount = 0;
 
@@ -325,7 +368,6 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['ctrl', 'system'], handler() { fireCount += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl']);
@@ -342,7 +384,7 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['meta', 'system'], handler() { fireCount += 1; } },
         ],
-        platform: Platform.macos,
+        systemMod: 'meta',
       });
 
       dispatchKeydown('a', 'KeyA', ['meta']);
@@ -359,7 +401,6 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['meta', 'system'], handler() { fireCount += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl', 'meta']);
@@ -376,7 +417,7 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['ctrl', 'system'], handler() { fireCount += 1; } },
         ],
-        platform: Platform.macos,
+        systemMod: 'meta',
       });
 
       dispatchKeydown('a', 'KeyA', ['ctrl', 'meta']);
@@ -395,7 +436,6 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', handler() { fired += 1; }, mod: ['ctrl'] },
         ],
-        platform: Platform.linux,
       });
 
       // @ts-expect-error Accessing private method
@@ -429,7 +469,6 @@ describe('Shortcut handling', () => {
         shortcuts: [
           { key: 'A', mod: ['shift'], handler() { shift += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('a', 'KeyA', ['shift']);
@@ -449,7 +488,6 @@ describe('Shortcut handling', () => {
           { key: 'PrintScreen', handler() { fireCount += 1; } },
           { key: 'Insert', handler() { fireCount += 1; } },
         ],
-        platform: Platform.linux,
       });
 
       dispatchKeydown('Escape', 'Escape');
@@ -476,7 +514,6 @@ describe('Management', () => {
           handler() { fired += 1; },
         },
       ],
-      platform: Platform.linux,
       noAutoBind: true,
     });
 
@@ -500,7 +537,6 @@ describe('Management', () => {
           handler() { fired += 1; },
         },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('a', 'KeyA');
@@ -516,7 +552,6 @@ describe('Management', () => {
       shortcuts: [
         { key: 'A', handler() { fireCount += 1; }, context: 'a' },
       ],
-      platform: Platform.linux,
       activeContexts: ['a'],
     });
 
@@ -535,7 +570,6 @@ describe('Management', () => {
         { key: 'A', handler() { a += 1; }, context: 'a' },
         { key: 'A', handler() { b += 1; }, context: 'b' },
       ],
-      platform: Platform.linux,
       activeContexts: ['a'],
     });
 
@@ -559,7 +593,6 @@ describe('Management', () => {
         { key: 'A', handler() { a += 1; }, context: 'a' },
         { key: 'A', handler() { b += 1; }, context: 'b' },
       ],
-      platform: Platform.linux,
       activeContexts: ['a'],
     });
 
@@ -583,7 +616,6 @@ describe('Management', () => {
         { key: 'A', handler() { a += 1; }, context: 'a' },
         { key: 'A', handler() { b += 1; }, context: 'b' },
       ],
-      platform: Platform.linux,
       activeContexts: ['a', 'b'],
     });
 
@@ -603,7 +635,6 @@ describe('Management', () => {
 
     const sh = new Shocut({
       shortcuts: [],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('a', 'KeyA');
@@ -641,7 +672,6 @@ describe('Management', () => {
           handler() { c += 1; },
         },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('a', 'KeyA');
@@ -680,7 +710,6 @@ describe('Management', () => {
           handler() { c += 1; },
         },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('a', 'KeyA');
@@ -716,7 +745,6 @@ describe('Management', () => {
           handler() { c += 1; },
         },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('a', 'KeyA');
@@ -752,7 +780,6 @@ describe('Management', () => {
           handler() { c += 1; },
         },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('a', 'KeyA');
@@ -788,7 +815,6 @@ describe('Management', () => {
           handler() { a += 1; },
         },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('Escape', 'Escape');
@@ -834,7 +860,6 @@ describe('Management', () => {
           handler() { c += 1; },
         },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('a', 'KeyA');
@@ -870,7 +895,6 @@ describe('Management', () => {
           handler() { a += 1; },
         },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('Escape', 'Escape');
@@ -918,7 +942,6 @@ describe('Management', () => {
           mod: ['alt'],
         },
       ],
-      platform: Platform.linux,
     });
 
     // Expecting to not have an effect
@@ -965,7 +988,6 @@ describe('Management', () => {
         { handler, key: 'A' },
         { handler() { b += 1; }, key: 'A' },
       ],
-      platform: Platform.linux,
     });
 
     dispatchKeydown('a', 'KeyA');
@@ -995,7 +1017,6 @@ describe('Management', () => {
         { key: 'A', mod: ['ctrl'], handler() { d += 1; }, context: false },
         { key: 'A', mod: ['ctrl'], handler() { e += 1; } },
       ],
-      platform: Platform.linux,
       activeContexts: ['test', 'test2'],
     });
 
@@ -1031,7 +1052,6 @@ describe('Management', () => {
           shortcuts: [
             { key: '|', mod: ['shift'], handler: jest.fn },
           ],
-          platform: Platform.linux,
         });
       }
       catch {
@@ -1043,7 +1063,6 @@ describe('Management', () => {
           shortcuts: [
             { key: '#', mod: ['shift', 'ctrl'], handler: jest.fn },
           ],
-          platform: Platform.linux,
         });
       }
       catch {
@@ -1051,9 +1070,7 @@ describe('Management', () => {
       }
 
       const sh = new Shocut({
-        shortcuts: [
-        ],
-        platform: Platform.linux,
+        shortcuts: [],
       });
 
       try {
@@ -1089,7 +1106,6 @@ describe('Management', () => {
             // @ts-expect-error For testing purposes.
             { key: 'A', mod: ['magic'], handler: jest.fn },
           ],
-          platform: Platform.linux,
         });
       }
       catch {
@@ -1097,9 +1113,7 @@ describe('Management', () => {
       }
 
       const sh = new Shocut({
-        shortcuts: [
-        ],
-        platform: Platform.linux,
+        shortcuts: [],
       });
 
       try {
@@ -1124,7 +1138,6 @@ describe('Management', () => {
         new Shocut({
           shortcuts: [],
           activeContexts: ['!test'],
-          platform: Platform.linux,
         });
       }
       catch {
@@ -1133,7 +1146,6 @@ describe('Management', () => {
 
       const sh = new Shocut({
         shortcuts: [],
-        platform: Platform.linux,
       });
 
       try {

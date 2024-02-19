@@ -1,7 +1,6 @@
 import { haveSameValues } from './lib/array';
 
 import {
-  Platform,
   type Modifier,
   type ShortcutMap,
   NON_TYPING_KEYS,
@@ -62,7 +61,7 @@ export function validateContexts(contexts: string[], trace: string): void {
 export function checkModifiersMatch(
   input: Array<Exclude<Modifier, 'system'>>,
   target: Modifier[],
-  platform: Platform,
+  systemKey: Exclude<Modifier, 'system'>,
 ) : boolean {
   if (target.length === 0) {
     return input.length === 0;
@@ -73,13 +72,8 @@ export function checkModifiersMatch(
   if (target.includes('system')) {
     target.splice(target.indexOf('system'), 1);
 
-    if (platform === Platform.macos) {
-      if (!target.includes('meta')) {
-        target.push('meta');
-      }
-    }
-    else if (!target.includes('ctrl')) {
-      target.push('ctrl');
+    if (!target.includes(systemKey)) {
+      target.push(systemKey);
     }
   }
 

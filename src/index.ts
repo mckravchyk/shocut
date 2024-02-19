@@ -16,8 +16,9 @@ const SUPPORTED_MODIFIERS = ['system', 'ctrl', 'meta', 'alt', 'shift'] as const;
 
 /**
  * Shortcut modifier key:
- * - system - the default modifier key for standard keyboard shortcuts on the OS. It is the command
- * key on Mac OS and the control key on other systems.
+ * - system - the default modifier key for standard keyboard shortcuts on the OS. It is defined by
+ * the `systemMod` constructor property, which if not set, defaults to `'meta'` (command) on Mac OS
+ * and `'ctrl'` on other systems.
  * - alt - the option key on Mac OS and alt key on other platforms
  * - ctrl - the control key
  * - meta - the command key on Macs or the Windows logo button on other computers
@@ -84,16 +85,18 @@ export interface Shortcut<ContextName extends string> extends ShortcutArgs<Conte
   context: ShortcutContext<ContextName>[]
 }
 
-export enum Platform {
-  linux,
-  macos,
-  windows,
-  other
-}
-
 export interface Args<ContextName extends string> {
   shortcuts: ShortcutArgs<ContextName>[]
-  platform: Platform
+
+  /**
+   * The modifier that will be mapped to the special `'system'` modifier to follow the default
+   * keyboard shortcuts scheme on the OS.
+   *
+   * If not set it will be determined from `window.navigator` and set as `'meta'` if Mac OS is
+   * detected or `'ctrl'` in any other case.
+   */
+  systemMod?: Exclude<Modifier, 'system'>
+
   activeContexts?: ContextName[]
 
   /**
@@ -137,10 +140,10 @@ export class Shocut<ContextName extends string> {
 
   private autobind_ = false;
 
-  private platform_: Platform;
+  private systemMod_: Exclude<Modifier, 'system'>;
 
   public constructor(args: Args<ContextName>) {
-    this.platform_ = args.platform;
+    this.systemMod_ = args.systemMod || Shocut.getSystemMod();
     this.activeContexts_ = args.activeContexts || [];
 
     validateContexts(this.activeContexts_, 'Nu46QORqkIX5');
@@ -277,6 +280,25 @@ export class Shocut<ContextName extends string> {
   };
 
   /**
+   * Gets the default modifier for keyboard shortcuts on the OS by reading data made available in
+   * `window.navigator`.
+   */
+  public static getSystemMod(): 'ctrl' | 'meta' {
+    let platform = '';
+    type NavigatorUaData = Navigator & { userAgentData: { platform: string } }
+    const uaData = (window.navigator as NavigatorUaData).userAgentData;
+
+    if (typeof uaData !== 'undefined' && typeof uaData.platform !== 'undefined') {
+      platform = uaData.platform.toUpperCase();
+    }
+    else if (typeof window.navigator.platform !== 'undefined') {
+      platform = window.navigator.platform.toUpperCase();
+    }
+
+    return platform.includes('MAC') ? 'meta' : 'ctrl';
+  }
+
+  /**
    * Whether the modifiers match those of the shortcut.
    *
    * @param mod Array of modifiers. Pass empty array if there are no modifiers.
@@ -301,14 +323,14 @@ export class Shocut<ContextName extends string> {
     return mod.length === shortcutMod.length && haveSameValues(mod, shortcutMod);
   }
 
-  // Note that it must not be the ECMAScript private field # as it's used in tests
+  // Note that it must NOT be the ECMAScript private field # as it's used in tests
   private processShortcut_(e: KeyboardEvent, keyShortcuts: Shortcut<ContextName>[]): boolean {
     let shortcutFired = false;
     const modifiers = getModifiers(e);
 
     for (const shortcut of keyShortcuts) {
       if (
-        checkModifiersMatch(modifiers, shortcut.mod || false, this.platform_)
+        checkModifiersMatch(modifiers, shortcut.mod, this.systemMod_)
         && checkContext(this.activeContexts_, shortcut.context)
       ) {
         shortcut.handler.call(null, e);
