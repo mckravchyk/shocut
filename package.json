@@ -10,16 +10,16 @@
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/index.d.mts",
+        "types": "./dist/types/index.d.mts",
         "default": "./dist/shocut.mjs"
       },
       "require": {
-        "types": "./dist/index.d.ts",
+        "types": "./dist/types/index.d.ts",
         "default": "./dist/shocut.common.js"
       }
     }
   },
-  "types": "./dist/index.d.ts",
+  "types": "./dist/types/index.d.ts",
   "scripts": {
     "lint": "eslint src test",
     "check-types": "tsc --noemit",

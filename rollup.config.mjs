@@ -44,7 +44,7 @@ export default [
         tsconfigOverride: {
           compilerOptions: {
             declaration: true,
-            declarationDir: './dist',
+            declarationDir: './dist/types',
           },
           exclude: ['./test'],
         },
@@ -70,7 +70,7 @@ export default [
           // https://github.com/gxmari007/vite-plugin-eslint/pull/60
           // Copy for ESM types is made in CJS bundle to ensure the declaration file generated in
           // the previous bundle exists.
-          { src: 'dist/index.d.ts', dest: 'dist', rename: 'index.d.mts' },
+          { src: 'dist/types/index.d.ts', dest: 'dist/types', rename: 'index.d.mts' },
         ],
       }),
     ],
