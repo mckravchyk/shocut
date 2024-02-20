@@ -530,11 +530,11 @@ describe('Management', () => {
 
     dispatchKeydown('a', 'KeyA', ['ctrl']);
 
-    sh.remove((s) => s.context.includes('test'));
+    sh.remove((s) => Array.isArray(s.context) && s.context.includes('test'));
 
     dispatchKeydown('a', 'KeyA', ['ctrl']);
 
-    sh.remove((s) => s.context.includes('test2'));
+    sh.remove((s) => Array.isArray(s.context) && s.context.includes('test2'));
 
     dispatchKeydown('a', 'KeyA', ['ctrl']);
 
