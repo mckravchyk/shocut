@@ -67,22 +67,27 @@ export interface ShortcutArgs<ContextName extends string> {
    *
    * #1 If not set, `false` or an empty array the shortcut will apply in any context.
    *
-   * #2 If string, the shortcut will either apply only if the context is set or never apply if the
+   * #2 If function - the function will evaluate whether the shortcut should fire taking active
+   * contexts as its input.
+   *
+   * #3 If string, the shortcut will either apply only if the context is set or never apply if the
    * context is active if the context name has been preceeded with ! (a negation).
    *
-   * #3 If one dimensional array, an OR relation applies for all specified contexts i.e.
+   * #4 If one dimensional array, an OR relation applies for all specified contexts i.e.
    * `['context1', 'context2', '!context3', '!context4']` means `'fire when context1 OR context2 OR
    * not-context3 OR not-context4'`
    *
-   * #4 If an inner array is used contexts specified within will be subject to an AND relation with
+   * #5 If an inner array is used contexts specified within will be subject to an AND relation with
    * each other. I.e.
    * `[['context1', 'context2', '!context3', '!context4']]` means `'fire if context1 AND context2
    * AND not-context3 AND not-context4'`.
    *
-   * #5 Individual AND relations can be joined by OR per the rules of #3.
+   * #6 Individual AND relations can be joined by OR per the rules of #3.
    */
   context?: ShortcutContext<ContextName>
-  | Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]> | false
+  | Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
+  | ((activeContexts: ContextName[]) => boolean)
+  | false
 }
 
 /**
@@ -96,6 +101,7 @@ export interface Shortcut<ContextName extends string> extends ShortcutArgs<Conte
   handler: (this: null, e: KeyboardEvent) => void
 
   context: Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
+  | ((activeContexts: ContextName[]) => boolean)
 }
 
 export interface Args<ContextName extends string> {

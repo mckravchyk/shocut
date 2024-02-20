@@ -62,7 +62,12 @@ export function validateContexts(contexts: string[], trace: string): void {
 
 export function processShortcutContext<ContextName extends string>(
   context: ShortcutArgs<ContextName>['context'],
-): Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]> {
+): Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
+| ((activeContexts: ContextName[]) => boolean) {
+  if (typeof context === 'function') {
+    return context;
+  }
+
   if (typeof context === 'undefined' || context === false) {
     return [];
   }
@@ -126,10 +131,15 @@ function checkContextAndRelation(
   return true;
 }
 
-export function checkContext(
-  activeContexts: string[],
-  inputContext: Array<string | string[]>,
+export function checkContext<CN extends string>(
+  activeContexts: CN[],
+  // eslint-disable-next-line max-len
+  inputContext: Array<ShortcutContext<CN> | ShortcutContext<CN>[]> | ((activeContexts: CN[]) => boolean),
 ): boolean {
+  if (typeof inputContext === 'function') {
+    return inputContext(activeContexts);
+  }
+
   if (inputContext.length === 0) {
     return true;
   }
@@ -151,9 +161,9 @@ export function checkContext(
  * Whether there are any "non modifier" shortcuts active. See the comment in
  * `KeyboardShortcuts['handleKeydown']` for more details.
  */
-export function hasNoModShortcuts(
-  shortcuts: ShortcutMap<string>,
-  activeContexts: string[],
+export function hasNoModShortcuts<CN extends string>(
+  shortcuts: ShortcutMap<CN>,
+  activeContexts: CN[],
 ): boolean {
   for (const [key, keyShortcuts] of Array.from(shortcuts.entries())) {
     // Non-typing keys are not considered for this optimization.

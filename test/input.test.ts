@@ -260,6 +260,7 @@ describe('Input', () => {
       let b = 0;
       let c = 0;
       let d = 0;
+      let e = 0;
 
       const sh = new Shocut({
         shortcuts: [
@@ -267,6 +268,7 @@ describe('Input', () => {
           { key: 'A', mod: ['ctrl'], handler() { b += 1; }, context: ['test2'] },
           { key: 'A', mod: ['ctrl'], handler() { c += 1; }, context: ['test', 'test2'] },
           { key: 'A', mod: ['ctrl'], handler() { d += 1; }, context: [['test', 'test2']] },
+          { key: 'A', mod: ['ctrl'], handler() { e += 1; }, context: (c) => c.includes('test') && c.includes('test2') },
         ],
       });
 
@@ -282,6 +284,7 @@ describe('Input', () => {
       expect(b).toBe(1);
       expect(c).toBe(2);
       expect(d).toBe(1);
+      expect(e).toBe(1);
 
       sh.destroy();
     });
