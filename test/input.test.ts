@@ -459,7 +459,72 @@ describe('Input', () => {
     });
   });
 
+  describe('Shortcut combos', () => {
+    test('A combination of 2 shortcuts fires by leveraging the context mechanism', () => {
+      let a = 0;
+
+      const sh = new Shocut({
+        shortcuts: [
+          { key: 'K', mod: ['ctrl'], handler() { sh.activateContext('Ctrl+K'); } },
+          { key: 'A', mod: ['ctrl'], context: ['Ctrl+K'], handler() { a += 1; } },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+      dispatchKeydown('k', 'KeyK', ['ctrl']);
+      dispatchKeydown('a', 'KeyA', ['ctrl']);
+      // In a real world case setTimeout can be used to deactivate it
+      sh.deactivateContext('Ctrl+K');
+
+      expect(a).toBe(1);
+
+      sh.destroy();
+    });
+
+    test('Combo shortcut fires only in specific contexts', () => {
+      let a = 0;
+
+      const sh = new Shocut({
+        shortcuts: [
+          { key: 'K', mod: ['ctrl'], handler() { sh.activateContext('Ctrl+K'); } },
+          { key: 'A', mod: ['ctrl'], context: [['Ctrl+K', 'a'], ['Ctrl+K', 'b']], handler() { a += 1; } },
+        ],
+      });
+
+      dispatchKeydown('k', 'KeyK', ['ctrl']);
+      dispatchKeydown('a', 'KeyA', ['ctrl']);
+      sh.deactivateContext('Ctrl+K');
+
+      sh.activateContext('a');
+
+      dispatchKeydown('k', 'KeyK', ['ctrl']);
+      dispatchKeydown('a', 'KeyA', ['ctrl']);
+      sh.deactivateContext('Ctrl+K');
+
+      sh.deactivateContext('a');
+      sh.activateContext('b');
+
+      dispatchKeydown('k', 'KeyK', ['ctrl']);
+      dispatchKeydown('a', 'KeyA', ['ctrl']);
+      sh.deactivateContext('Ctrl+K');
+
+      sh.activateContext('a');
+
+      dispatchKeydown('k', 'KeyK', ['ctrl']);
+      dispatchKeydown('a', 'KeyA', ['ctrl']);
+      sh.deactivateContext('Ctrl+K');
+
+      expect(a).toBe(3);
+
+      sh.destroy();
+    });
+  });
+
   describe('Typing optimization', () => {
+    // TODO: May need a case where a previously active contexts had shortcuts with modifiers but it
+    // does not anymore.
+
     test('Shortcuts are not processed while typing if there are no shortcuts without modifiers', () => {
       let fired = 0;
 
