@@ -256,12 +256,17 @@ describe('Input', () => {
     });
 
     test('a shortcut fires only in specific contexts', () => {
-      let fireCount = 0;
+      let a = 0;
+      let b = 0;
+      let c = 0;
+      let d = 0;
 
       const sh = new Shocut({
         shortcuts: [
-          { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: 'test' },
-          { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: ['test2'] },
+          { key: 'A', mod: ['ctrl'], handler() { a += 1; }, context: 'test' },
+          { key: 'A', mod: ['ctrl'], handler() { b += 1; }, context: ['test2'] },
+          { key: 'A', mod: ['ctrl'], handler() { c += 1; }, context: ['test', 'test2'] },
+          { key: 'A', mod: ['ctrl'], handler() { d += 1; }, context: [['test', 'test2']] },
         ],
       });
 
@@ -273,18 +278,22 @@ describe('Input', () => {
       sh.activateContext('test2');
       dispatchKeydown('a', 'KeyA', ['ctrl']); // 2
 
-      expect(fireCount).toBe(3);
+      expect(a).toBe(2);
+      expect(b).toBe(1);
+      expect(c).toBe(2);
+      expect(d).toBe(1);
 
       sh.destroy();
     });
 
     test('a shortcut never fires in specific contexts', () => {
-      let fireCount = 0;
+      let a = 0;
+      let b = 0;
 
       const sh = new Shocut({
         shortcuts: [
-          { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: '!test' },
-          { key: 'A', mod: ['ctrl'], handler() { fireCount += 1; }, context: ['test', '!test2'] },
+          { key: 'A', mod: ['ctrl'], handler() { a += 1; }, context: '!test' },
+          { key: 'A', mod: ['ctrl'], handler() { b += 1; }, context: ['test', '!test2'] },
         ],
       });
 
@@ -296,7 +305,8 @@ describe('Input', () => {
       sh.activateContext('test2');
       dispatchKeydown('a', 'KeyA', ['ctrl']); // 0
 
-      expect(fireCount).toBe(2);
+      expect(a).toBe(1);
+      expect(b).toBe(1);
 
       sh.destroy();
     });

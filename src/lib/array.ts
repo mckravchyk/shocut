@@ -1,5 +1,20 @@
-export function dedupe<T extends unknown[]>(arr: T): T {
-  return [...new Set(arr)] as T;
+/**
+ * Removes duplicate values from a multi-dimensional array recursively (strict equality check of
+ * simple types only).
+ */
+export function dedupe<T extends unknown[]>(input: T): T {
+  const output: T = [] as unknown as T;
+
+  for (const val of input) {
+    if (Array.isArray(val)) {
+      output.push(dedupe(val));
+    }
+    else if (!output.includes(val)) {
+      output.push(val);
+    }
+  }
+
+  return output;
 }
 
 /**
