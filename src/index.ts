@@ -70,23 +70,16 @@ export interface ShortcutArgs<ContextName extends string> {
    * #2 If string, the shortcut will either apply only if the context is set or never apply if the
    * context is active if the context name has been preceeded with ! (a negation).
    *
-   * #3 If one dimensional array, an OR relation applies for all specified context (affirmations)
-   * and AND relation applies for context negations, i.e.
-   * `['context1', 'context2', '!context3', '!context4']` means `'fire in (context1 OR context2) AND
-   * !context3 AND !context4'`
+   * #3 If one dimensional array, an OR relation applies for all specified contexts i.e.
+   * `['context1', 'context2', '!context3', '!context4']` means `'fire when context1 OR context2 OR
+   * not-context3 OR not-context4'`
    *
    * #4 If an inner array is used contexts specified within will be subject to an AND relation with
-   * each other for affirmations and an OR relation for negations. I.e.
+   * each other. I.e.
    * `[['context1', 'context2', '!context3', '!context4']]` means `'fire if context1 AND context2
-   * AND (!context3 OR !context4)'`.
+   * AND not-context3 AND not-context4'`.
    *
    * #5 Individual AND relations can be joined by OR per the rules of #3.
-   *
-   * Further notes:
-   * - If an inner AND statement has negations that have no effect and no affirmations and there
-   * are no other OR statements in the outer statement the statement will evaluate as true, i.e.
-   * [['!test']] will always match if the context is not 'test1' but [['!test'], 'test2'] would
-   * evaluate as true only if the context is not 'test' and is 'test2'.
    */
   context?: ShortcutContext<ContextName>
   | Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]> | false

@@ -25,21 +25,22 @@ describe('Context Checker', () => {
 
     it('does not match if a negation matches', () => {
       expect(checkContext(['a', 'b', 'c'], ['!a'])).toBe(false);
+    });
 
-      // Note that the negations are subject to AND logic (since the negation of an OR statement
-      // is equal to an AND of individual negations). In order for it to be a match there must be
-      // neither b nor d.
-      expect(checkContext(['a', 'b', 'c'], ['!b', '!d'])).toBe(false);
+    it('matches if a negation does not match but other statements do', () => {
+      expect(checkContext(['a', 'b', 'c'], ['!b', 'c'])).toBe(true);
+      expect(checkContext(['a', 'b', 'c'], ['!b', '!d'])).toBe(true);
     });
 
     it('does not match if multiple negations match', () => {
       expect(checkContext(['a', 'b', 'c'], ['!b', '!c'])).toBe(false);
     });
 
-    it('does not match if affirmations and negations do not match', () => {
-      expect(checkContext([], ['a', '!b'])).toBe(false);
-      expect(checkContext(['c'], ['a', '!b'])).toBe(false);
-      expect(checkContext(['c'], ['a', 'e', '!b', '!f'])).toBe(false);
+    it('matches if affirmations and negations do not match', () => {
+      // A negation that does not match evaluates as true
+      expect(checkContext([], ['a', '!b'])).toBe(true);
+      expect(checkContext(['c'], ['a', '!b'])).toBe(true);
+      expect(checkContext(['c'], ['a', 'e', '!b', '!f'])).toBe(true);
     });
   });
 
@@ -59,8 +60,6 @@ describe('Context Checker', () => {
     });
 
     it('does not match if at least one negation matches', () => {
-      // The condition is a AND b AND not-c AND not-d. Since c is present the statement must be
-      // false.
       expect(checkContext(['a', 'b', 'c'], [['a', 'b', '!c', '!d']])).toBe(false);
     });
 
@@ -86,6 +85,14 @@ describe('Context Checker', () => {
 
     it('does not match if neither condition matches', () => {
       expect(checkContext(['a', 'b', 'c'], [['d', 'e'], ['a', 'b', 'd']])).toBe(false);
+    });
+
+    it('matches if a negative condition does not match and an affirmation does not', () => {
+      expect(checkContext(['a', 'b', 'c'], [['!d'], ['a', 'b', 'd']])).toBe(true);
+    });
+
+    it('matches if an affirmation and a negative condition matches', () => {
+      expect(checkContext(['a', 'b', 'd'], [['!d'], ['a', 'b', 'd']])).toBe(true);
     });
   });
 });

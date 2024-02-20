@@ -293,7 +293,7 @@ describe('Input', () => {
       const sh = new Shocut({
         shortcuts: [
           { key: 'A', mod: ['ctrl'], handler() { a += 1; }, context: '!test' },
-          { key: 'A', mod: ['ctrl'], handler() { b += 1; }, context: ['test', '!test2'] },
+          { key: 'A', mod: ['ctrl'], handler() { b += 1; }, context: [['test', '!test2']] },
         ],
       });
 
