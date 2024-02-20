@@ -522,9 +522,6 @@ describe('Input', () => {
   });
 
   describe('Typing optimization', () => {
-    // TODO: May need a case where a previously active contexts had shortcuts with modifiers but it
-    // does not anymore.
-
     test('Shortcuts are not processed while typing if there are no shortcuts without modifiers', () => {
       let fired = 0;
 
@@ -543,6 +540,41 @@ describe('Input', () => {
 
       // @ts-expect-error Overriding private method with the mock.
       sh.processShortcut_ = processShortcut;
+
+      dispatchKeydown('a', 'KeyA');
+      expect(processShortcut).not.toHaveBeenCalled();
+
+      // Control to ensure that the call detection is setup properly
+      dispatchKeydown('a', 'KeyA', ['ctrl']);
+      expect(processShortcut).toHaveBeenCalled();
+
+      expect(fired).toBe(1);
+
+      sh.destroy();
+    });
+
+    test('Shortcuts are not processed while typing if there are no shortcuts without modifiers for the active contexts', () => {
+      let fired = 0;
+
+      const sh = new Shocut({
+        shortcuts: [
+          { key: 'A', handler() { fired += 1; }, mod: ['ctrl'] },
+          { key: 'A', handler() { fired += 1; }, context: 'test' },
+        ],
+        activeContexts: ['test'],
+      });
+
+      // @ts-expect-error Accessing private method
+      const originalProcessShortcut = sh.processShortcut_;
+
+      const processShortcut = jest.fn(
+        (...args: Parameters<Shocut<'test'>['processShortcut_']>) => originalProcessShortcut.call(sh, ...args),
+      );
+
+      // @ts-expect-error Overriding private method with the mock.
+      sh.processShortcut_ = processShortcut;
+
+      sh.deactivateContext('test');
 
       dispatchKeydown('a', 'KeyA');
       expect(processShortcut).not.toHaveBeenCalled();
