@@ -38,25 +38,6 @@ describe('Input', () => {
       sh.destroy();
     });
 
-    test('The instance is the this context of the handler', () => {
-      let t: Shocut<string> | null = null;
-
-      const sh = new Shocut({
-        shortcuts: [
-          {
-            key: 'A',
-            // eslint-disable-next-line @typescript-eslint/no-this-alias
-            handler() { t = this; },
-          },
-        ],
-      });
-
-      dispatchKeydown('a', 'KeyA');
-      expect(t).toBe(sh);
-
-      sh.destroy();
-    });
-
     test('A shortcut handler does not block other keydown handlers', () => {
       let a = 0;
       let b = 0;
@@ -535,6 +516,109 @@ describe('Input', () => {
       sh.deactivateContext('Ctrl+K');
 
       expect(a).toBe(3);
+
+      sh.destroy();
+    });
+  });
+
+  describe('Misc', () => {
+    test('The instance is the this context of the handler', () => {
+      let t: Shocut<string> | null = null;
+
+      const sh = new Shocut({
+        shortcuts: [
+          {
+            key: 'A',
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            handler() { t = this; },
+          },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA');
+      expect(t).toBe(sh);
+
+      sh.destroy();
+    });
+
+    test('The default action is prevented', () => {
+      let spy: jest.SpyInstance | null = null;
+
+      const sh = new Shocut({
+        shortcuts: [
+          {
+            key: 'A',
+            handler(e) { spy = jest.spyOn(e, 'preventDefault'); },
+          },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA');
+
+      expect(spy).not.toBe(null);
+      expect(spy!).toHaveBeenCalled();
+
+      sh.destroy();
+    });
+
+    test('The default action is not prevented if opted out', () => {
+      let spy: jest.SpyInstance | null = null;
+
+      const sh = new Shocut({
+        shortcuts: [
+          {
+            key: 'A',
+            handler(e) { spy = jest.spyOn(e, 'preventDefault'); },
+            noDefaultPrevent: true,
+          },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA');
+
+      expect(spy).not.toBe(null);
+      expect(spy!).not.toHaveBeenCalled();
+
+      sh.destroy();
+    });
+
+    test('Propagation is stopped', () => {
+      let spy: jest.SpyInstance | null = null;
+
+      const sh = new Shocut({
+        shortcuts: [
+          {
+            key: 'A',
+            handler(e) { spy = jest.spyOn(e, 'stopPropagation'); },
+          },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA');
+
+      expect(spy).not.toBe(null);
+      expect(spy!).toHaveBeenCalled();
+
+      sh.destroy();
+    });
+
+    test('Propagation is not stopped if opted out', () => {
+      let spy: jest.SpyInstance | null = null;
+
+      const sh = new Shocut({
+        shortcuts: [
+          {
+            key: 'A',
+            handler(e) { spy = jest.spyOn(e, 'stopPropagation'); },
+            noPropagationStop: true,
+          },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA');
+
+      expect(spy).not.toBe(null);
+      expect(spy!).not.toHaveBeenCalled();
 
       sh.destroy();
     });

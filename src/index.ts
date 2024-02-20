@@ -86,20 +86,26 @@ export interface ShortcutArgs<ContextName extends string> {
   | Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
   | ((activeContexts: ContextName[]) => boolean)
   | false
+
+  noDefaultPrevent?: boolean
+
+  noPropagationStop?: boolean
 }
 
 /**
  * The shortcut properties as stored internally.
  */
 export interface Shortcut<ContextName extends string> extends ShortcutArgs<ContextName> {
-  key: string
-
   mod: Modifier[]
 
   handler: (this: Shocut<ContextName>, e: KeyboardEvent) => void
 
   context: Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
   | ((activeContexts: ContextName[]) => boolean)
+
+  noDefaultPrevent: boolean
+
+  noPropagationStop: boolean
 }
 
 export interface Args<ContextName extends string> {
@@ -340,7 +346,6 @@ export class Shocut<ContextName extends string> {
     return mod.length === shortcutMod.length && haveSameValues(mod, shortcutMod);
   }
 
-  // Note that it must NOT be the ECMAScript private field # as it's used in tests
   private processShortcut_(e: KeyboardEvent, keyShortcuts: Shortcut<ContextName>[]): boolean {
     let shortcutFired = false;
     const modifiers = getModifiers(e);
@@ -352,8 +357,13 @@ export class Shocut<ContextName extends string> {
       ) {
         shortcut.handler.call(this, e);
 
-        e.preventDefault();
-        e.stopPropagation();
+        if (!shortcut.noDefaultPrevent) {
+          e.preventDefault();
+        }
+
+        if (!shortcut.noPropagationStop) {
+          e.stopPropagation();
+        }
 
         shortcutFired = true;
         // Note that multiple handlers for the same key combinations are allowed - do not break.
@@ -401,6 +411,8 @@ export class Shocut<ContextName extends string> {
         handler: shortcut.handler,
         mod: dedupe(getArrayFromProp(shortcut.mod)),
         context: processShortcutContext(shortcut.context),
+        noDefaultPrevent: !!shortcut.noDefaultPrevent,
+        noPropagationStop: !!shortcut.noPropagationStop,
       });
     }
 
