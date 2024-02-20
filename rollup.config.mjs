@@ -22,7 +22,6 @@ const banner = createBanner([
 ]);
 
 const defaults = {
-  input: 'src/index.ts',
   external: [
     ...Object.keys(pkg.dependencies || {}),
     ...Object.keys(pkg.peerDependencies || {}),
@@ -32,6 +31,7 @@ const defaults = {
 export default [
   // ESM build + type declarations
   {
+    input: 'src/index.ts',
     ...defaults,
     output: {
       file: pkg.exports['.'].import.default,
@@ -55,6 +55,7 @@ export default [
 
   // Common JS build
   {
+    input: 'src/index.ts',
     ...defaults,
     output: {
       file: pkg.exports['.'].require.default,
@@ -71,8 +72,35 @@ export default [
           // Copy for ESM types is made in CJS bundle to ensure the declaration file generated in
           // the previous bundle exists.
           { src: 'dist/types/index.d.ts', dest: 'dist/types', rename: 'index.d.mts' },
+          { src: 'dist/types/shortcut_key.d.ts', dest: 'dist/types', rename: 'shortuct_key.d.mts' },
         ],
       }),
+    ],
+  },
+
+  // ./shortcut_key
+  {
+    input: 'src/shortcut_key.ts',
+    ...defaults,
+    output: {
+      file: pkg.exports['./shortcut_key'].import.default,
+      format: 'es',
+      banner,
+    },
+    plugins: [
+      typescript(),
+    ],
+  },
+  {
+    input: 'src/shortcut_key.ts',
+    ...defaults,
+    output: {
+      file: pkg.exports['./shortcut_key'].require.default,
+      format: 'cjs',
+      banner,
+    },
+    plugins: [
+      typescript(),
     ],
   },
 ];

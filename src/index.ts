@@ -1,5 +1,6 @@
-import { getShortcutKey } from 'keyboard-shortcuts-i18n';
 import { dedupe, haveSameValues } from './lib/array';
+
+import { getShortcutKey } from './shortcut_key';
 
 import {
   checkContext,
@@ -423,3 +424,9 @@ export class Shocut<ContextName extends string> {
     this.hasNoModShortcutsInActiveCtx_ = hasNoModShortcuts(this.shortcuts_, this.activeContexts_);
   }
 }
+
+// The function in the bundle can only be used if the consumer uses module resolution Node16 or
+// NodeNext which won't be the case in majority of cases today. Even if it was not for the fallback
+// it is still useful to export it in the main bundle so the function is not imported twice if the
+// consumer is using the main bundle.
+export { getShortcutKey };

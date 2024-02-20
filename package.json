@@ -17,6 +17,16 @@
         "types": "./dist/types/index.d.ts",
         "default": "./dist/shocut.common.js"
       }
+    },
+    "./shortcut_key": {
+      "import": {
+        "types": "./dist/types/shortcut_key.d.mts",
+        "default": "./dist/shortcut_key.mjs"
+      },
+      "require": {
+        "types": "./dist/types/shortcut_key.d.ts",
+        "default": "./dist/shortcut_key.common.js"
+      }
     }
   },
   "types": "./dist/types/index.d.ts",
@@ -63,8 +73,5 @@
     "rollup-plugin-typescript2": "^0.36.0",
     "tslib": "^2.4.0",
     "typescript": "^5.3"
-  },
-  "dependencies": {
-    "keyboard-shortcuts-i18n": "file:../keyboard-shortcuts-i18n"
   }
 }
