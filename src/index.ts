@@ -58,9 +58,7 @@ export interface ShortcutArgs<ContextName extends string> {
    */
   mod?: Modifier | Modifier[]
 
-  // FIXME: this as the event target / current target - the same as it would be in the original
-  // event callback
-  handler: (this: null, e: KeyboardEvent) => void
+  handler: (this: Shocut<ContextName>, e: KeyboardEvent) => void
 
   /**
    * Defines in which contexts the shortcut is allowed to fire:
@@ -98,7 +96,7 @@ export interface Shortcut<ContextName extends string> extends ShortcutArgs<Conte
 
   mod: Modifier[]
 
-  handler: (this: null, e: KeyboardEvent) => void
+  handler: (this: Shocut<ContextName>, e: KeyboardEvent) => void
 
   context: Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
   | ((activeContexts: ContextName[]) => boolean)
@@ -352,7 +350,7 @@ export class Shocut<ContextName extends string> {
         checkModifiersMatch(modifiers, shortcut.mod, this.systemMod_)
         && checkContext(this.activeContexts_, shortcut.context)
       ) {
-        shortcut.handler.call(null, e);
+        shortcut.handler.call(this, e);
 
         e.preventDefault();
         e.stopPropagation();

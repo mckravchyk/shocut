@@ -38,6 +38,25 @@ describe('Input', () => {
       sh.destroy();
     });
 
+    test('The instance is the this context of the handler', () => {
+      let t: Shocut<string> | null = null;
+
+      const sh = new Shocut({
+        shortcuts: [
+          {
+            key: 'A',
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            handler() { t = this; },
+          },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA');
+      expect(t).toBe(sh);
+
+      sh.destroy();
+    });
+
     test('A shortcut handler does not block other keydown handlers', () => {
       let a = 0;
       let b = 0;
@@ -487,7 +506,7 @@ describe('Input', () => {
 
       const sh = new Shocut({
         shortcuts: [
-          { key: 'K', mod: ['ctrl'], handler() { sh.activateContext('Ctrl+K'); } },
+          { key: 'K', mod: ['ctrl'], handler() { this.activateContext('Ctrl+K'); } },
           { key: 'A', mod: ['ctrl'], context: [['Ctrl+K', 'a'], ['Ctrl+K', 'b']], handler() { a += 1; } },
         ],
       });
