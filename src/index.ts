@@ -109,7 +109,7 @@ export interface Shortcut<ContextName extends string> extends ShortcutOptions<Co
 }
 
 export interface Options<ContextName extends string> {
-  shortcuts: ShortcutOptions<ContextName>[]
+  shortcuts?: ShortcutOptions<ContextName>[]
 
   /**
    * The modifier that will be mapped to the special `'system'` modifier to follow the default
@@ -165,7 +165,7 @@ export class Shocut<ContextName extends string> {
 
   private systemMod_: Exclude<Modifier, 'system'>;
 
-  public constructor(options: Options<ContextName>) {
+  public constructor(options: Options<ContextName> = { }) {
     this.systemMod_ = options.systemMod || Shocut.getSystemMod();
     this.activeContexts_ = options.activeContexts ? [...options.activeContexts] : [];
 
@@ -176,7 +176,9 @@ export class Shocut<ContextName extends string> {
       window.addEventListener('keydown', this.handleKeydown);
     }
 
-    this.registerShortcuts(options.shortcuts);
+    if (options.shortcuts) {
+      this.registerShortcuts(options.shortcuts);
+    }
   }
 
   public destroy() {
