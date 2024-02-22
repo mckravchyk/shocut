@@ -32,10 +32,7 @@ export type ShortcutMap<ContextName extends string> = Map<string /* key */, Shor
 
 export type ShortcutContext<ContextName extends string> = ContextName | `!${ContextName}`;
 
-/**
- * The arguments for registering a shortcut.
- */
-export interface ShortcutArgs<ContextName extends string> {
+export interface ShortcutOptions<ContextName extends string> {
   /**
    * The key to trigger the shortcut. Only one key is allowed sans modifiers.
    *
@@ -95,8 +92,10 @@ export interface ShortcutArgs<ContextName extends string> {
 
 /**
  * The shortcut properties as stored internally.
+ *
+ * This is exposed in `remove` anti-filter callback.
  */
-export interface Shortcut<ContextName extends string> extends ShortcutArgs<ContextName> {
+export interface Shortcut<ContextName extends string> extends ShortcutOptions<ContextName> {
   mod: Modifier[]
 
   handler: (this: Shocut<ContextName>, e: KeyboardEvent) => void
@@ -109,8 +108,8 @@ export interface Shortcut<ContextName extends string> extends ShortcutArgs<Conte
   noPropagationStop: boolean
 }
 
-export interface Args<ContextName extends string> {
-  shortcuts: ShortcutArgs<ContextName>[]
+export interface Options<ContextName extends string> {
+  shortcuts: ShortcutOptions<ContextName>[]
 
   /**
    * The modifier that will be mapped to the special `'system'` modifier to follow the default
@@ -166,18 +165,18 @@ export class Shocut<ContextName extends string> {
 
   private systemMod_: Exclude<Modifier, 'system'>;
 
-  public constructor(args: Args<ContextName>) {
-    this.systemMod_ = args.systemMod || Shocut.getSystemMod();
-    this.activeContexts_ = args.activeContexts || [];
+  public constructor(options: Options<ContextName>) {
+    this.systemMod_ = options.systemMod || Shocut.getSystemMod();
+    this.activeContexts_ = options.activeContexts || [];
 
     validateContexts(this.activeContexts_, 'Nu46QORqkIX5');
 
-    if (!args.noAutoBind) {
+    if (!options.noAutoBind) {
       this.autobind_ = true;
       window.addEventListener('keydown', this.handleKeydown);
     }
 
-    this.registerShortcuts(args.shortcuts);
+    this.registerShortcuts(options.shortcuts);
   }
 
   public destroy() {
@@ -189,7 +188,7 @@ export class Shocut<ContextName extends string> {
   /**
    * Adds new shortcuts.
    */
-  public add(shortcuts: ShortcutArgs<ContextName>[]): void {
+  public add(shortcuts: ShortcutOptions<ContextName>[]): void {
     this.registerShortcuts(shortcuts);
   }
 
@@ -327,7 +326,7 @@ export class Shocut<ContextName extends string> {
    *
    * @param mod Array of modifiers. Pass empty array if there are no modifiers.
    */
-  public static modifiersMatch(shortcut: ShortcutArgs<string>, mod: Modifier[]): boolean {
+  public static modifiersMatch(shortcut: ShortcutOptions<string>, mod: Modifier[]): boolean {
     if (!Array.isArray(mod)) {
       mod = [mod];
     }
@@ -374,7 +373,7 @@ export class Shocut<ContextName extends string> {
     return shortcutFired;
   }
 
-  private registerShortcuts(shortcuts: ShortcutArgs<ContextName>[]): void {
+  private registerShortcuts(shortcuts: ShortcutOptions<ContextName>[]): void {
     for (const shortcut of shortcuts) {
       const mods = getArrayFromProp(shortcut.mod);
 

@@ -4,7 +4,7 @@ import {
   type Modifier,
   type ShortcutMap,
   NON_TYPING_KEYS,
-  type ShortcutArgs,
+  type ShortcutOptions,
   type ShortcutContext,
 } from '.';
 
@@ -61,7 +61,7 @@ export function validateContexts(contexts: string[], trace: string): void {
 }
 
 export function processShortcutContext<ContextName extends string>(
-  context: ShortcutArgs<ContextName>['context'],
+  context: ShortcutOptions<ContextName>['context'],
 ): Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
 | ((activeContexts: ContextName[]) => boolean) {
   if (typeof context === 'function') {
