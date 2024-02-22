@@ -140,12 +140,12 @@ export function checkContext<CN extends string>(
     return inputContext(activeContexts);
   }
 
-  if (inputContext.length === 0) {
-    return true;
-  }
-
   if (!Array.isArray(inputContext)) {
     inputContext = [inputContext];
+  }
+
+  if (inputContext.length === 0) {
+    return true;
   }
 
   for (const context of inputContext) {
