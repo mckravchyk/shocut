@@ -291,7 +291,7 @@ export class Shocut<ContextName extends string> {
     ) {
       const keyShortcuts = [
         ...(this.shortcuts_.get(`code:${e.code}`) || []),
-        ...(this.shortcuts_.get(getShortcutKey(e.key, e.code)) || []),
+        ...(this.shortcuts_.get(Shocut.getShortcutKey(e.key, e.code)) || []),
       ];
 
       if (typeof keyShortcuts !== 'undefined' && keyShortcuts.length > 0) {
@@ -301,6 +301,30 @@ export class Shocut<ContextName extends string> {
 
     return false;
   };
+
+  /**
+   * Gets key associated with a Keyboard event with a fallback to use absolute code value for
+   * non-Latin keyboard layouts.
+   *
+   * Most commonly non-Latin keyboards have 2 sets of alphabets printed and 2 modes to switch
+   * between them. The Latin mode usually follows the standard QWERTY layout so by falling back to
+   * use key codes, a keyboard command can work even though the layout is in non-Latin mode.
+   *
+   * Limitations:
+   * - This does not consider custom layouts such as using Dvorak instead of QWERTY for Latin-mode
+   * on a non-Latin layout. In that case the shortcut would be mapped per QWERTY while the user uses
+   * something different for Latin alphabet input.
+   * - Some non-Latin layouts (i.e. Greek) have a symbol on KeyQ which makes it impossible to
+   * distinguish them from custom Latin layouts without further feature detection. KeyQ will not
+   * work for those.
+   *
+   * @returns if `key` is a non-Latin letter (unicode >= 880) and `code` represents a letter or a
+   * digit on a Qwerty layout, it will return the corresponding letter (uppercase) or digit on a
+   * Qwerty layout. Otherwise it will return `key` (transformed to uppercase if it's a letter).
+   */
+  public static getShortcutKey(key: KeyboardEvent['key'], code: KeyboardEvent['code']): string {
+    return getShortcutKey(key, code);
+  }
 
   /**
    * Gets the default modifier for keyboard shortcuts on the OS by reading data made available in
@@ -423,9 +447,3 @@ export class Shocut<ContextName extends string> {
     this.hasNoModShortcutsInActiveCtx_ = hasNoModShortcuts(this.shortcuts_, this.activeContexts_);
   }
 }
-
-// The function in the bundle can only be used if the consumer uses module resolution Node16 or
-// NodeNext which won't be the case in majority of cases today. Even if it was not for the fallback
-// it is still useful to export it in the main bundle so the function is not imported twice if the
-// consumer is using the main bundle.
-export { getShortcutKey };
