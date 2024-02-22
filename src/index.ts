@@ -183,6 +183,11 @@ export class Shocut<ContextName extends string> {
     if (this.autobind_) {
       window.removeEventListener('keydown', this.handleKeydown);
     }
+
+    this.shortcuts_ = new Map();
+    this.activeContexts_ = [];
+    this.autobind_ = false;
+    this.hasNoModShortcutsInActiveCtx_ = false;
   }
 
   /**
