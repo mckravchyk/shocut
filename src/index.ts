@@ -167,7 +167,7 @@ export class Shocut<ContextName extends string> {
 
   public constructor(options: Options<ContextName>) {
     this.systemMod_ = options.systemMod || Shocut.getSystemMod();
-    this.activeContexts_ = options.activeContexts || [];
+    this.activeContexts_ = options.activeContexts ? [...options.activeContexts] : [];
 
     validateContexts(this.activeContexts_, 'Nu46QORqkIX5');
 
