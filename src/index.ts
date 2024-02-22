@@ -36,16 +36,16 @@ export interface ShortcutOptions<ContextName extends string> {
   /**
    * The key to trigger the shortcut. Only one key is allowed sans modifiers.
    *
-   * By default this is the key that matches the `KeyboardEvent['key']` property with the exception
-   * that if the property is a letter, it will always be upper case and if it is a non Latin
-   * alphabet letter it will be translated to a Latin letter per QWERTY layout - see
-   * `keyboard-shortcuts-i18n` npm package for more detail about the latter.
+   * By default this is the key that matches [KeyboardEvent.key](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key)
+   * with the exception that if the property is a letter, it will always be upper case and if it is
+   * a non Latin alphabet letter it will be translated to a Latin letter per QWERTY layout - see
+   * `get_shortcut_key` for more detail about the latter.
    *
-   * It is also possible to bind to `KeyboardEvent['code']` - this is facilitated by prefixing the
-   * key with `'code:'`, i.e. `'code:Backquote'`. Binding to `code` may be necessary for some
-   * symbol keys, i.e. for Ctrl + ` on a standard QWERTY layout the code will be `'Backquote'` but
-   * the key will be `'Unidentified'`. A shortcut handler bound with code value will always take
-   * priority over a regular key.
+   * It is also possible to bind to [KeyboardEvent.code](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/code)
+   * which is facilitated by prefixing the key with `'code:'`, i.e. `'code:Backquote'`. Binding to
+   * `code` may be necessary for some symbol keys, i.e. for Ctrl + \` on a standard QWERTY layout
+   * the code will be `'Backquote'` but the key will be `'Unidentified'`. A shortcut handler bound
+   * with code value will always take priority over a regular key.
    */
   key: string
 
@@ -61,24 +61,24 @@ export interface ShortcutOptions<ContextName extends string> {
   /**
    * Defines in which contexts the shortcut is allowed to fire:
    *
-   * #1 If not set, `false` or an empty array the shortcut will apply in any context.
+   * 1. If not set, `false` or an empty array the shortcut will apply in any context.
    *
-   * #2 If function - the function will evaluate whether the shortcut should fire taking active
-   * contexts as its input.
+   * 2. If function - a function that accepts active contexts as its only parameter evaluates
+   * whether the shortcut should fire by returning a boolean value.
    *
-   * #3 If string, the shortcut will either apply only if the context is set or never apply if the
+   * 3. If string, the shortcut will either apply only if the context is set or never apply if the
    * context is active if the context name has been preceeded with ! (a negation).
    *
-   * #4 If one dimensional array, an OR relation applies for all specified contexts i.e.
+   * 4. If one dimensional array, an OR relation applies for all specified contexts i.e.
    * `['context1', 'context2', '!context3', '!context4']` means `'fire when context1 OR context2 OR
    * not-context3 OR not-context4'`
    *
-   * #5 If an inner array is used contexts specified within will be subject to an AND relation with
+   * 5. If an inner array is used contexts specified within will be subject to an AND relation with
    * each other. I.e.
    * `[['context1', 'context2', '!context3', '!context4']]` means `'fire if context1 AND context2
    * AND not-context3 AND not-context4'`.
    *
-   * #6 Individual AND relations can be joined by OR per the rules of #3.
+   * 6. Individual AND relations can be joined by OR per the rules of #4.
    */
   context?: ShortcutContext<ContextName>
   | Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
@@ -98,8 +98,6 @@ export interface ShortcutOptions<ContextName extends string> {
 export interface Shortcut<ContextName extends string> extends ShortcutOptions<ContextName> {
   mod: Modifier[]
 
-  handler: (this: Shocut<ContextName>, e: KeyboardEvent) => void
-
   context: Array<ShortcutContext<ContextName> | ShortcutContext<ContextName>[]>
   | ((activeContexts: ContextName[]) => boolean)
 
@@ -112,11 +110,14 @@ export interface Options<ContextName extends string> {
   shortcuts?: ShortcutOptions<ContextName>[]
 
   /**
-   * The modifier that will be mapped to the special `'system'` modifier to follow the default
-   * keyboard shortcuts scheme on the OS.
+   * The physical modifier to use for the special `'system'` shortcut modifier value. It is expected
+   * to be `'meta'` on Mac OS and `'ctrl'` on other systems.
    *
-   * If not set it will be determined from `window.navigator` and set as `'meta'` if Mac OS is
-   * detected or `'ctrl'` in any other case.
+   * If not provided, Shocut will do its own feature detection based on the data made available in
+   * `window.navigator` property which is not 100% reliable.
+   *
+   * In Electron apps it is recommended to pass this value manually based on the data that is
+   * provided by Electron APIs.
    */
   systemMod?: Exclude<Modifier, 'system'>
 
@@ -200,31 +201,30 @@ export class Shocut<ContextName extends string> {
   }
 
   /**
-   * Removes shortcuts with a `removeShortuct` function that accepts the shortcut as an argument and
-   * removes it if `true` is returned (works opposite to `Array.prototype.filter`).
+   * Removes shortcuts that match the `removeShortcut` anti-filter callback and optionally, `keys`.
+   * It works opposite to the `Array.prototype.filter`.
+   *
+   * @param keys Run removeShortcut only for shortcuts registered for the particular keys rather
+   * than all, sparing unnecessary processing. The keys are case insensitive (unlike shortcut
+   * processing in `removeShortcut`!).
    *
    * NOTE: Single letter keys are always stored in upper case regardless of the original input data
    * and upper case letters must be used for comparison in the filter function. In the majority of
-   * cases it would just suffice to use the keyOrKeys argument which does not care about the case.
-   *
-   * @param keyOrKeys If set, the function will only be applied on specific keys rather than
-   * processing everything. Unlike filter, this input is case insensitive.
-  */
+   * cases it would just suffice to use the keys argument which does not care about the case.
+   */
   public remove(
     removeShortcut: (shortcut: Shortcut<ContextName>) => boolean,
-    keyOrKeys?: string | string[],
+    keys?: string | string[],
   ): void {
-    let keys: string[] | null = null;
-
-    if (Array.isArray(keyOrKeys)) {
-      keys = keyOrKeys.map((k) => sanitizeKeyValue(k));
+    if (Array.isArray(keys)) {
+      keys = keys.map((k) => sanitizeKeyValue(k));
     }
-    else if (typeof keyOrKeys === 'string') {
-      keys = [sanitizeKeyValue(keyOrKeys)];
+    else if (typeof keys === 'string') {
+      keys = [sanitizeKeyValue(keys)];
     }
 
     for (const [key, shortcuts] of Array.from(this.shortcuts_.entries())) {
-      if (keys === null || keys.includes(key)) {
+      if (typeof keys === 'undefined' || keys.includes(key)) {
         this.shortcuts_.set(key, shortcuts.filter((v) => !removeShortcut(v)));
       }
     }
@@ -254,7 +254,7 @@ export class Shocut<ContextName extends string> {
   }
 
   /**
-   * Sets new active contexts, overriding the previous value.
+   * Sets new active contexts, overriding the previous ones.
    *
    * @throws If any of the context names is invalid. Context name must not start with '!'.
    */
@@ -353,13 +353,13 @@ export class Shocut<ContextName extends string> {
   }
 
   /**
-   * Whether the modifiers match those of the shortcut.
+   * Checks whether `modifiers` match those of the `shortcut`.
    *
-   * @param mod Array of modifiers. Pass empty array if there are no modifiers.
+   * @param modifiers Array of modifiers. Use empty array to test for no modifiers.
    */
-  public static modifiersMatch(shortcut: ShortcutOptions<string>, mod: Modifier[]): boolean {
-    if (!Array.isArray(mod)) {
-      mod = [mod];
+  public static modifiersMatch(shortcut: ShortcutOptions<string>, modifiers: Modifier[]): boolean {
+    if (!Array.isArray(modifiers)) {
+      modifiers = [modifiers];
     }
 
     let shortcutMod: Modifier[] = [];
@@ -374,7 +374,7 @@ export class Shocut<ContextName extends string> {
       shortcutMod = [];
     }
 
-    return mod.length === shortcutMod.length && haveSameValues(mod, shortcutMod);
+    return modifiers.length === shortcutMod.length && haveSameValues(modifiers, shortcutMod);
   }
 
   private processShortcut_(e: KeyboardEvent, keyShortcuts: Shortcut<ContextName>[]): boolean {

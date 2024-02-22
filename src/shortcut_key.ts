@@ -18,8 +18,8 @@
  * work for those.
  *
  * @returns if `key` is a non-Latin letter (unicode >= 880) and `code` represents a letter or a
- * digit on a Qwerty layout, it will return the corresponding letter (uppercase) or digit on a
- * Qwerty layout. Otherwise it will return `key` (transformed to uppercase if it's a letter).
+ * digit on a QWERTY layout, it will return the corresponding letter (uppercase) or digit on a
+ * QWERTY layout. Otherwise it will return `key` (transformed to uppercase if it's a letter).
  */
 export function getShortcutKey(key: KeyboardEvent['key'], code: KeyboardEvent['code']): string {
   if (key.length !== 1) {
