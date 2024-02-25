@@ -1,6 +1,6 @@
 /* eslint-disable object-curly-newline, no-new */
 
-import { Shocut } from 'src';
+import { Shocut, type Modifier, type Options, type ShortcutOptions } from 'src';
 import { dispatchKeydown } from './util';
 
 type NavigatorUaData = Navigator & { userAgentData: { platform: string } };
@@ -169,9 +169,7 @@ describe('Management', () => {
   test('New shortcuts are added', () => {
     let fired = 0;
 
-    const sh = new Shocut({
-      shortcuts: [],
-    });
+    const sh = new Shocut();
 
     dispatchKeydown('a', 'KeyA');
 
@@ -599,6 +597,87 @@ describe('Management', () => {
     expect(c).toBe(3);
     expect(d).toBe(3);
     expect(e).toBe(3);
+
+    sh.destroy();
+  });
+
+  test('Externally changing input does not modify internal state (initialization)', () => {
+    let fireCount = 0;
+
+    const mod = ['ctrl'] as Array<'ctrl'>;
+    const context = ['a'] as Array<'a'>;
+
+    const shortcuts: ShortcutOptions<'a'>[] = [
+      { key: 'A', handler() { fireCount += 1; }, mod, context },
+    ];
+
+    const activeContexts = ['a'] as Array<'a'>;
+
+    const options: Options<'a'> = {
+      shortcuts,
+      activeContexts,
+    };
+
+    const sh = new Shocut(options);
+
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    activeContexts.splice(0, 1);
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    mod.splice(0, 1);
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    // Important to check this before context.splice as it could possibly cancel out
+    expect(fireCount).toBe(3);
+
+    context.splice(0, 1);
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    shortcuts.splice(0, 1);
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    expect(fireCount).toBe(5);
+
+    sh.destroy();
+  });
+
+  test('Externally changing input does not modify internal state (adding a shortcut)', () => {
+    let fired = 0;
+
+    const sh = new Shocut({ activeContexts: ['test'] });
+
+    dispatchKeydown('a', 'KeyA');
+
+    const mod = ['ctrl'] as Modifier[];
+    const context = ['test'] as Array<'test'>;
+
+    const shortcuts = [
+      {
+        key: 'A',
+        handler() { fired += 1; },
+        mod,
+        context,
+      },
+    ];
+
+    sh.add(shortcuts);
+
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    mod.splice(1, 0);
+
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    context.splice(1, 0);
+
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    shortcuts.splice(1, 0);
+
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+
+    expect(fired).toBe(4);
 
     sh.destroy();
   });
