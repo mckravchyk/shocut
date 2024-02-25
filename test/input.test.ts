@@ -96,6 +96,37 @@ describe('Input', () => {
       sh.destroy();
     });
 
+    test('A shortcut modifier value is case insensitive', () => {
+      let ctrl = 0;
+      let meta = 0;
+      let alt = 0;
+      let shift = 0;
+      const sh = new Shocut({
+        shortcuts: [
+          // @ts-expect-error Case insensitive modifier name
+          { key: 'A', mod: ['ctrL'], handler() { ctrl += 1; } },
+          // @ts-expect-error Case insensitive modifier name
+          { key: 'A', mod: ['Alt'], handler() { alt += 1; } },
+          // @ts-expect-error Case insensitive modifier name
+          { key: 'A', mod: ['mEta'], handler() { meta += 1; } },
+          // @ts-expect-error Case insensitive modifier name
+          { key: 'A', mod: ['SHIFT'], handler() { shift += 1; } },
+        ],
+      });
+
+      dispatchKeydown('a', 'KeyA', ['ctrl']);
+      dispatchKeydown('a', 'KeyA', ['alt']);
+      dispatchKeydown('a', 'KeyA', ['meta']);
+      dispatchKeydown('a', 'KeyA', ['shift']);
+
+      expect(ctrl).toBe(1);
+      expect(meta).toBe(1);
+      expect(alt).toBe(1);
+      expect(shift).toBe(1);
+
+      sh.destroy();
+    });
+
     test('A shortcut fires for multiple modifiers', () => {
       let fireCount = 0;
 

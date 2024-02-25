@@ -460,7 +460,8 @@ describe('Management', () => {
         {
           key: 'A',
           handler() { ctrl += 1; },
-          mod: ['ctrl'],
+          // @ts-expect-error Modifier name
+          mod: ['Ctrl'],
         },
         {
           key: 'A',
@@ -481,7 +482,8 @@ describe('Management', () => {
     dispatchKeydown('a', 'KeyA', ['ctrl']);
     dispatchKeydown('a', 'KeyA', ['alt']);
 
-    sh.remove((s) => Shocut.modifiersMatch(s, ['ctrl']));
+    // @ts-expect-error Modifier name
+    sh.remove((s) => Shocut.modifiersMatch(s, ['Ctrl']));
 
     dispatchKeydown('a', 'KeyA');
     dispatchKeydown('a', 'KeyA', ['ctrl']);

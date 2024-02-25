@@ -383,7 +383,10 @@ export class Shocut<ContextName extends string> {
       shortcutMod = [];
     }
 
-    return modifiers.length === shortcutMod.length && haveSameValues(modifiers, shortcutMod);
+    return (
+      modifiers.length === shortcutMod.length
+      && haveSameValues(modifiers.map((m) => m.toLowerCase()), shortcutMod)
+    );
   }
 
   private processShortcut_(e: KeyboardEvent, keyShortcuts: Shortcut<ContextName>[]): boolean {
@@ -418,7 +421,7 @@ export class Shocut<ContextName extends string> {
       const mods = getArrayFromProp(shortcut.mod);
 
       for (const mod of mods) {
-        if (!SUPPORTED_MODIFIERS.includes(mod)) {
+        if (!SUPPORTED_MODIFIERS.includes(mod.toLowerCase() as Modifier)) {
           throw new Error(`Invalid modifier ${mod}`);
         }
 
@@ -449,7 +452,7 @@ export class Shocut<ContextName extends string> {
       keyShortcuts.push({
         key: shortcut.key,
         handler: shortcut.handler,
-        mod: dedupe(getArrayFromProp(shortcut.mod)),
+        mod: dedupe(getArrayFromProp(shortcut.mod).map((m) => m.toLowerCase() as Modifier)),
         context: processShortcutContext(shortcut.context),
         noDefaultPrevent: !!shortcut.noDefaultPrevent,
         noPropagationStop: !!shortcut.noPropagationStop,
