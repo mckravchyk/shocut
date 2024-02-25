@@ -57,6 +57,9 @@ export function validateContexts(contexts: string[], trace: string): void {
     if (context.startsWith('!')) {
       throw new Error(`Context value must not start with '!' [${trace}]`);
     }
+    if (context === '') {
+      throw new Error(`Context name must not be empty [${trace}]`);
+    }
   }
 }
 

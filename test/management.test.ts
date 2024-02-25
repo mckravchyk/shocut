@@ -703,5 +703,48 @@ describe('Management', () => {
 
       sh.destroy();
     });
+
+    test('An error is thrown when setting a context name that is empty', () => {
+      let errorCount = 0;
+
+      try {
+        new Shocut({
+          shortcuts: [],
+          activeContexts: [''],
+        });
+      }
+      catch {
+        errorCount += 1;
+      }
+
+      const sh = new Shocut({
+        shortcuts: [],
+      });
+
+      try {
+        sh.activateContext('');
+      }
+      catch {
+        errorCount += 1;
+      }
+
+      try {
+        sh.activateContext('test', '');
+      }
+      catch {
+        errorCount += 1;
+      }
+
+      try {
+        sh.setActiveContexts('test', '');
+      }
+      catch {
+        errorCount += 1;
+      }
+
+      expect(errorCount).toBe(4);
+
+      sh.destroy();
+    });
   });
 });
