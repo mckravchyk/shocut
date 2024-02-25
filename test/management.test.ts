@@ -53,6 +53,34 @@ describe('Management', () => {
     expect(fired).toBe(1);
   });
 
+  test('destroy() resets the instance but it is still usable', () => {
+    let a = 0;
+    let b = 0;
+
+    const sh = new Shocut({
+      shortcuts: [
+        { key: 'A', mod: ['ctrl'], handler() { a += 1; } },
+      ],
+    });
+
+    sh.destroy();
+
+    window.addEventListener('keydown', sh.handleKeydown);
+
+    sh.add([
+      { key: 'B', mod: ['ctrl'], handler() { b += 1; } },
+    ]);
+
+    dispatchKeydown('a', 'KeyA', ['ctrl']);
+    dispatchKeydown('b', 'KeyB', ['ctrl']);
+
+    expect(a).toBe(0);
+    expect(b).toBe(1);
+
+    window.removeEventListener('keydown', sh.handleKeydown);
+    sh.destroy();
+  });
+
   test('Initializes with a context value', () => {
     let fireCount = 0;
 
