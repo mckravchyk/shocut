@@ -260,7 +260,7 @@ export class Shocut<ContextName extends string> {
    */
   public setActiveContexts(...contexts: ContextName[]) {
     validateContexts(contexts, 'Op1i3F4Reh84');
-    this.activeContexts_ = [...contexts];
+    this.activeContexts_ = dedupe(contexts);
     this.processChanges_();
   }
 
