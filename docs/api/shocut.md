@@ -47,6 +47,8 @@ Adds new shortcuts.
   * Returns `boolean` indicating whether the shortcut is to be removed
 * `keys` string | string[] (optional) - Run `removeShortcut` only for shortcuts registered for the particular keys rather than all, sparing unnecessary processing. The keys are case insensitive (unlike processing of [Shortcut](./structures/shortcut.md) in `removeShortcut`!).
 
+Returns `number` - the number of shortcuts that have been removed.
+
 Removes shortcuts that match the `removeShortcut` anti-filter callback and optionally, `keys`. It works opposite to the `Array.prototype.filter`.
 
 Use `Shocut.modifiersMatch` to evaluate a shortcut by its modifiers.

@@ -195,6 +195,28 @@ describe('Management', () => {
     sh.destroy();
   });
 
+  test('The count of removed shortcuts is returned', () => {
+    const sh = new Shocut({
+      shortcuts: [
+        {
+          key: 'A',
+          handler: jest.fn,
+        },
+        {
+          key: 'a',
+          handler: jest.fn,
+        },
+        {
+          key: 'C',
+          handler: jest.fn,
+        },
+      ],
+    });
+
+    expect(sh.remove(() => true)).toBe(3);
+    sh.destroy();
+  });
+
   test('Shortcuts are removed by key (with the special argument)', () => {
     let a = 0;
     let b = 0;

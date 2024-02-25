@@ -215,7 +215,7 @@ export class Shocut<ContextName extends string> {
   public remove(
     removeShortcut: (shortcut: Shortcut<ContextName>) => boolean,
     keys?: string | string[],
-  ): void {
+  ): number {
     if (Array.isArray(keys)) {
       keys = keys.map((k) => sanitizeKeyValue(k));
     }
@@ -223,13 +223,19 @@ export class Shocut<ContextName extends string> {
       keys = [sanitizeKeyValue(keys)];
     }
 
+    let removeCount = 0;
+
     for (const [key, shortcuts] of Array.from(this.shortcuts_.entries())) {
       if (typeof keys === 'undefined' || keys.includes(key)) {
-        this.shortcuts_.set(key, shortcuts.filter((v) => !removeShortcut(v)));
+        const newShortcuts = shortcuts.filter((v) => !removeShortcut(v));
+        this.shortcuts_.set(key, newShortcuts);
+        removeCount += shortcuts.length - newShortcuts.length;
       }
     }
 
     this.processChanges_();
+
+    return removeCount;
   }
 
   public getActiveContexts(): ContextName[] {
