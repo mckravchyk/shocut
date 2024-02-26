@@ -72,7 +72,7 @@ export default [
           // Copy for ESM types is made in CJS bundle to ensure the declaration file generated in
           // the previous bundle exists.
           { src: 'dist/types/index.d.ts', dest: 'dist/types', rename: 'index.d.mts' },
-          { src: 'dist/types/shortcut_key.d.ts', dest: 'dist/types', rename: 'shortuct_key.d.mts' },
+          { src: 'dist/types/shortcut_key.d.ts', dest: 'dist/types', rename: 'shortcut_key.d.mts' },
         ],
       }),
     ],
