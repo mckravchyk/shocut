@@ -1,6 +1,6 @@
 {
   "name": "shocut",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A fast, lightweight, multi-context and i18n friendly keyboard shortcut library for web-based renderers",
   "author": "Maciej Krawczyk",
   "homepage": "https://github.com/mckravchyk/shocut",
