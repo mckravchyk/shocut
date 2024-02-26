@@ -52,7 +52,7 @@
     "internationalization",
     "i18n",
     "accessibility",
-    "a11n"
+    "a11y"
   ],
   "devDependencies": {
     "@babel/core": "^7.18.9",
